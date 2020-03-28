@@ -1,0 +1,11 @@
+/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/bin/Debug/Server.exe
+/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/bin/Debug/Server.pdb
+/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/obj/Debug/DedicatedServer.csprojAssemblyReference.cache
+/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/obj/Debug/Server.exe
+/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/obj/Debug/Server.pdb
+C:\Users\andreis4\Desktop\Andrei\Licenta\Licenta\Server\Server\bin\Debug\Server.exe.config
+C:\Users\andreis4\Desktop\Andrei\Licenta\Licenta\Server\Server\obj\Debug\Server.exe
+C:\Users\andreis4\Desktop\Andrei\Licenta\Licenta\Server\Server\obj\Debug\Server.pdb
+C:\Users\andreis4\Desktop\Andrei\Licenta\Licenta\Server\Server\bin\Debug\Server.exe
+C:\Users\andreis4\Desktop\Andrei\Licenta\Licenta\Server\Server\bin\Debug\Server.pdb
+C:\Users\andreis4\Desktop\Andrei\Licenta\Licenta\Server\Server\obj\Debug\DedicatedServer.csprojResolveAssemblyReference.cache
