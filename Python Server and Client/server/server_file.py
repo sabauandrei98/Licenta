@@ -1,38 +1,83 @@
-import socket
-import sys
+import socket 
+import thread
+import time
 
-COLOR_GREEN = '\033[92m'
-COLOR_YELLOW = '\033[93m'
-COLOR_BLUE = '\033[94m'
-COLOR_END = '\033[0m'
+class Server:
 
-# Create a TCP/IP socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	def __init__(self, host = None, port = None):
 
-server_name = "127.0.0.1"
-server_address = (server_name, 10000)
+		if host is None:
+			self.host = "127.0.0.1"
+		else:
+			self.host = host
 
-print >>sys.stderr, 'Starting up the server on %s:%s' % server_address
-sock.bind(server_address)
-sock.listen(0)
+		if port is None:
+			self.port = 10000
+		else:
+			self.port = port
 
-print >> sys.stderr, 'Waiting for a connection...'
-connection, client_address = sock.accept()
 
-print(COLOR_GREEN + "Client connected on address" + str(client_address) + COLOR_END)
-print ("Received messages:")
+	def create_server_socket(self):
+		self.s_socket = socket.socket()
+		self.s_socket.bind((self.host, self.port))
+		self.s_socket.listen(5)
 
-def readInput():
-    message = raw_input(">>Enter message: ")
-    return message
+	def client_handler(self, clientsocket, addr):
+		send_time_ms = time.time()
+		recv_time_ms = time.time()
 
-try:
-    while True:
-        print("Waiting for the client ...")
-        data = connection.recv(256)
-        print(COLOR_BLUE + "CLIENT: " + data + COLOR_END)
+		while True:
+			try:
+				#wait info from client
+				clientsocket.settimeout(5.0)
+				msg = clientsocket.recv(1024)
+				#save the recive time
+				recv_time_ms = time.time()
+				#calculate delta
+				rtt_in_s = round(recv_time_ms - send_time_ms, 3)
 
-        message = readInput()
-        connection.sendall(message)
-finally:
-    connection.close()
+				#debug 
+				print ("Message: " + msg + " || Address: " + str(addr) + " || Passed: " + str(rtt_in_s))
+
+				#send some message
+				msg = "Message received by the server"
+				clientsocket.send(msg)
+
+				#save the send time
+				send_time_ms = time.time()
+
+			except socket.timeout:
+				print("This client has been disconnected due timeout !")
+
+			except socket.error:
+				print("Oops there was an socket error and connection was closed !")
+
+			finally:
+				clientsocket.close()
+				print("This socket was closed !")
+
+	def run(self):
+		self.create_server_socket()
+
+		print 'SERVER ON !'
+		print 'Waiting for clients...'
+
+		try:
+			while True:
+				#wait for a new player
+				c, addr = self.s_socket.accept()
+
+				#handle the player on a different thread
+				thread.start_new_thread(self.client_handler, (c, addr))
+
+				print("New player conneted: " + str(addr))
+
+		except Exception as e:
+			print ("Exception :" + str(e))
+			
+		finally:
+			self.s_socket.close()
+			print("Server socket was closed !")
+
+s = Server()
+s.run()
