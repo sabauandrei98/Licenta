@@ -2,65 +2,90 @@ import socket
 import thread
 import time
 
+#connection
+DEFAULT_HOST = "127.0.0.1"
+DEFAULT_PORT = 10000
+DEFAULT_LISTEN = 5
+
+RECV_TIMEOUT = 20.0
+RECV_SIZE_BYTES = 64
+
+MAX_PLAYERS = 2
+
 class Server:
 
 	def __init__(self, host = None, port = None):
+		self.host = DEFAULT_HOST if not host else host
+		self.port = DEFAULT_PORT if not port else port
 
-		if host is None:
-			self.host = "127.0.0.1"
-		else:
-			self.host = host
+		#available tokens for clients
+		'''TO DO: generate tokens randomly'''
+		self.tokens  = ["token1", "token2"]
 
-		if port is None:
-			self.port = 10000
-		else:
-			self.port = port
+		#used tokens (avoid sending info to server on the same token on 2 different sockets)
+		self.used_tokens = {key: False for key in self.tokens}
 
 
 	def create_server_socket(self):
 		self.s_socket = socket.socket()
 		self.s_socket.bind((self.host, self.port))
-		self.s_socket.listen(5)
+		self.s_socket.listen(DEFAULT_LISTEN)
 
-	def client_handler(self, clientsocket, addr):
-		send_time_ms = time.time()
-		recv_time_ms = time.time()
 
-		while True:
-			try:
-				#wait info from client
-				clientsocket.settimeout(5.0)
-				msg = clientsocket.recv(1024)
-				#save the recive time
+	def client_handler(self, client_socket, addr):
+
+		client_token = ""
+
+		try:
+			#check the token from the client 
+			#to verify if it is authorized to join this server
+			client_socket.settimeout(RECV_TIMEOUT)
+			client_token = client_socket.recv(RECV_SIZE_BYTES)
+
+			if client_token in self.tokens and self.used_tokens[client_token] is False:
+				self.used_tokens[client_token] = True
+				client_socket.send("Your token is correct !")
+			else:
+				client_socket.send("Your token is wrong OR already used in a connection !")
+				raise Exception ("Wrong token from the client OR already used in a connection !")
+
+			#at this point, the client successfully connected to the server
+			print("The token from this client was successfully verified !")
+
+			while True:
+				client_socket.send("this is a string")
+				send_time_ms = time.time()
+
+				msg = client_socket.recv(RECV_SIZE_BYTES)
 				recv_time_ms = time.time()
-				#calculate delta
+				
 				rtt_in_s = round(recv_time_ms - send_time_ms, 3)
 
 				#debug 
-				print ("Message: " + msg + " || Address: " + str(addr) + " || Passed: " + str(rtt_in_s))
+				print (client_token + ": " + msg + " || " + str(addr) + " || " + str(rtt_in_s)) + " seconds"
 
-				#send some message
-				msg = "Message received by the server"
-				clientsocket.send(msg)
+		except socket.timeout:
+			print("This client has been disconnected due timeout !")
 
-				#save the send time
-				send_time_ms = time.time()
+		except socket.error:
+			print("Oops there was an socket error and connection was closed !")
 
-			except socket.timeout:
-				print("This client has been disconnected due timeout !")
+		except Exception as warning:
+			print (warning)
 
-			except socket.error:
-				print("Oops there was an socket error and connection was closed !")
+		finally:
+			client_socket.close()
 
-			finally:
-				clientsocket.close()
-				print("This socket was closed !")
+			#if client was connected to server, free the socket on that token
+			if client_token in self.used_tokens.keys():
+				self.used_tokens[client_token] = False
+
+			print("This socket was closed ! A new player can reconnect on this socket and token !")
 
 	def run(self):
 		self.create_server_socket()
 
-		print 'SERVER ON !'
-		print 'Waiting for clients...'
+		print ("SERVER ON ! Waiting for clients ...")
 
 		try:
 			while True:
@@ -70,7 +95,7 @@ class Server:
 				#handle the player on a different thread
 				thread.start_new_thread(self.client_handler, (c, addr))
 
-				print("New player conneted: " + str(addr))
+				print("New player tries to connect: " + str(addr) + '\n')
 
 		except Exception as e:
 			print ("Exception :" + str(e))

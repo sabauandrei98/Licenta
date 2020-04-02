@@ -1,27 +1,67 @@
 import socket
 import sys
+import time
 
-# Create a TCP/IP socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+RECV_SIZE_BYTES = 512
 
-server_address = ("127.0.0.1", 10000)
-print >> sys.stderr, 'connecting to %s port %s' % server_address
-sock.connect(server_address)
+#connect to server info
+SERVER_ADDRESS  = "127.0.0.1"
+SERVER_PORT     = 10000
+CLIENT_TOKEN    = "token1"
 
-token = raw_input(">>Enter token: ")
+class Client:
 
-def readInput():
-    message = raw_input(">>Enter message: ")
-    return message
+	def __init__(self, server_address, port, token):
+		self.server_address = server_address
+		self.port			= port
+		self.token 			= token
 
-try:
-    while True:
-        message = readInput()
-        sock.sendall(message + " " + token)
+		self.connect_to_server()
+		self.recv_send()
 
-        print("Message sent. Waiting for the server ...")
-        data = sock.recv(256)
-        print("SERVER: " + data)
+	def connect_to_server(self):
+		
+		try:
+			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			print("Connecting to: " + str(self.server_address) + ":" + str(self.port) + " tkn: " +  self.token)
+			self.sock.connect((self.server_address, self.port))
 
-finally:
-    sock.close()
+			self.sock.sendall(self.token)
+			message = self.sock.recv(RECV_SIZE_BYTES)
+			print(message)
+
+		except socket.error:
+			print("Oops there was an socket error and connection was closed !")
+
+			#exit in case we get any socket error
+			exit()
+
+	def recv_send(self):
+		try:
+
+		    while True:
+		    	server_data = self.sock.recv(RECV_SIZE_BYTES)
+		        
+		        start_time = time.time()
+		        message_to_send = self.solve(server_data)
+		        time.sleep(2)
+		        end_time   = time.time()
+
+		        rtt_in_s = round(end_time - start_time, 3)
+
+		        print("It took: " + str(rtt_in_s) + " seconds to process the information !")
+
+		        self.sock.sendall(message_to_send)
+
+		except socket.error:
+			print("Oops there was an socket error and connection to the server was closed !")
+
+		finally:
+		    self.sock.close()
+
+
+	def solve(self, server_data):
+		return server_data
+
+
+c = Client(SERVER_ADDRESS, SERVER_PORT, CLIENT_TOKEN)
