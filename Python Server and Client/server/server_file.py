@@ -7,7 +7,7 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 10000
 DEFAULT_LISTEN = 5
 
-RECV_TIMEOUT = 20.0
+RECV_TIMEOUT = 2.5
 RECV_SIZE_BYTES = 64
 
 MAX_PLAYERS = 2
@@ -35,6 +35,7 @@ class Server:
 	def client_handler(self, client_socket, addr):
 
 		client_token = ""
+		successfully_connected = False
 
 		try:
 			#check the token from the client 
@@ -44,13 +45,14 @@ class Server:
 
 			if client_token in self.tokens and self.used_tokens[client_token] is False:
 				self.used_tokens[client_token] = True
-				client_socket.send("Your token is correct !")
+				client_socket.send("Ok!")
 			else:
-				client_socket.send("Your token is wrong OR already used in a connection !")
 				raise Exception ("Wrong token from the client OR already used in a connection !")
 
 			#at this point, the client successfully connected to the server
 			print("The token from this client was successfully verified !")
+
+			successfully_connected = True
 
 			while True:
 				client_socket.send("this is a string")
@@ -77,7 +79,7 @@ class Server:
 			client_socket.close()
 
 			#if client was connected to server, free the socket on that token
-			if client_token in self.used_tokens.keys():
+			if successfully_connected:
 				self.used_tokens[client_token] = False
 
 			print("This socket was closed ! A new player can reconnect on this socket and token !")
