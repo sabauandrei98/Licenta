@@ -1,21 +1,20 @@
-# Licenta
+# Licence Work 
 
 CURRENT PROGRESS: 
 
-- Successfully set an python server and client to test a TCP connection which will further be used to connect to the Unity server for sending and receiving info.
+- Handled some undesired work flows on the server and client
+- User friendly messages in the server and client interfaces
+- Handling most of the exceptions and errors on python server and client
+- Successfully set an python server and client to test a TCP connection which will further be used to connect to the Unity for sending and receiving info.
 - Some Unity code to connect to a C# separate server.
 
-
-
-Licence Work 
-
-Idea: 
+## Idea: 
 
 This is a challenge-based training platform  where you can improve your coding skills with fun turn based Unity games.
 The main idea is the same as on Codingame Platform: https://www.codingame.com
 
 
-Basic description:
+#### Basic description:
 
 The player opens the Unity Platform and chooses a game. 
 Next, the user is able to play offline or online (LAN multiplayer)
@@ -23,7 +22,7 @@ Next, the user is able to play offline or online (LAN multiplayer)
 OFFLINE: the player will fight agains a hardcoded bot.
 ONLINE: the player will be guided to a lobby and will be asked to choose an opponent. After that, each user will get a token. Each user will use that token in order to successfully connect to the server from a desired programming language and ide.
 
-More detailed description:
+#### More detailed description:
 
 - The server is started on the Unity Platform while on multiplayer section. 
 - User is allowed to enter a lobby or to create one.
