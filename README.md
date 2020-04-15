@@ -1,7 +1,11 @@
 # Licence Work 
 
-CURRENT PROGRESS: 
+CURRENT PROGRESS LOG: 
 
+- Unity Client async pipeline methods to server to avoid freezing the app
+- Unity Client sends and receives data from python server
+- Unity Client networking, successfully connecting to the python server
+- Python server more stable
 - Handled some undesired work flows on the server and client
 - User friendly messages in the server and client interfaces
 - Handling most of the exceptions and errors on python server and client
