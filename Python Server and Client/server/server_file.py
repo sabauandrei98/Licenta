@@ -3,8 +3,8 @@ import thread
 import time
 
 #connection
-DEFAULT_HOST = "127.0.0.1"
-DEFAULT_PORT = 10000
+DEFAULT_HOST = "localhost"
+DEFAULT_PORT = 50000
 DEFAULT_LISTEN = 5
 
 RECV_TIMEOUT = 2.5
@@ -27,7 +27,7 @@ class Server:
 
 
 	def create_server_socket(self):
-		self.s_socket = socket.socket()
+		self.s_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.s_socket.bind((self.host, self.port))
 		self.s_socket.listen(DEFAULT_LISTEN)
 
@@ -41,8 +41,9 @@ class Server:
 			#check the token from the client 
 			#to verify if it is authorized to join this server
 			client_socket.settimeout(RECV_TIMEOUT)
-			client_token = client_socket.recv(RECV_SIZE_BYTES)
+			client_token = client_socket.recv(RECV_SIZE_BYTES).rstrip('\r\n')
 
+			print(client_token)
 			if client_token in self.tokens and self.used_tokens[client_token] is False:
 				self.used_tokens[client_token] = True
 				client_socket.send("Ok!")
