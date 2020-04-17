@@ -6,6 +6,7 @@ to test tcp networking code
 """ 
 
 import socket 
+import time
 
 host = '' 
 port = 50000 
@@ -22,11 +23,11 @@ while 1:
     recv_times = 0
 
     while 1: 
-        client.send("ana are mere"+"\n")
-        data = client.recv(size)
+        client.send("msg:"+ str(recv_times) + "\n")
+        
 
-        recv_times = recv_times + 1
-        print(recv_times)
-        if recv_times == 100:
-            break
+        data = client.recv(size)
+        print("data:" + data)
+
+    
 

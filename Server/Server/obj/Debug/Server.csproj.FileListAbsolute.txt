@@ -1,5 +1,0 @@
-/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/bin/Debug/Server.exe
-/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/bin/Debug/Server.pdb
-/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/obj/Debug/Server.csprojAssemblyReference.cache
-/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/obj/Debug/Server.exe
-/Users/andreis4/Desktop/Faculta/Licenta/Server/Server/obj/Debug/Server.pdb

@@ -124,7 +124,6 @@ GameObject:
   - component: {fileID: 193826580}
   - component: {fileID: 193826579}
   - component: {fileID: 193826578}
-  - component: {fileID: 193826577}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -132,20 +131,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &193826577
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 193826576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f6fa8fd4542142eeb2f8c599cdfa04c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  startMenu: {fileID: 932987794}
-  usernameField: {fileID: 1503530377}
 --- !u!114 &193826578
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -570,9 +555,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5eb1a4f89faf44e1bba5232d8e238faf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ip: 127.0.0.1
-  port: 26950
-  myId: 0
+  SERVER_ADDRESS: localhost
+  SERVER_PORT: 50000
+  SERVER_TOKEN: token1
 --- !u!4 &852912680
 Transform:
   m_ObjectHideFlags: 0
@@ -740,7 +725,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 193826577}
+      - m_Target: {fileID: 0}
         m_MethodName: ConnectToServer
         m_Mode: 1
         m_Arguments:
