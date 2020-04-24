@@ -23,11 +23,18 @@ while 1:
     recv_times = 0
 
     while 1: 
-        client.send("msg:"+ str(recv_times) + "\n")
-        
+	
+		client.send("msg:"+ str(recv_times))
+		time.sleep (1)
 
-        data = client.recv(size)
-        print("data:" + data)
+		data = client.recv(1024)
+		print (data)
+
+
+		
+
+
+
 
     
 
