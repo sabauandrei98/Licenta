@@ -6,20 +6,22 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using UnityEngine.UI;
 
-public class AlternativeNetwork : MonoBehaviour
+public class NetworkManager : MonoBehaviour
 {
     public Text connection_status;
+    public Text ip_text;
+    public Text port_text;
     public Button connect_to_server_button;
     public Button ready_button;
-
-
-    private string from_server_info = "";
 
     private Socket _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     private byte[] _recieveBuffer = new byte[512];
 
     private const string UNITY_TOKEN = "439b3a25b555b3bc8667a09a036ae70c";
     private bool connected = false;
+    private string server_cmd = "";
+    private string ide_token = "";
+
 
     void Start()
     {
@@ -29,11 +31,11 @@ public class AlternativeNetwork : MonoBehaviour
 
     void Update()
     {
-        if (from_server_info != "")
+        if (server_cmd != "")
         {
-            Debug.Log("Recv: <" + from_server_info + ">");
-            CommandHandler(from_server_info);
-            from_server_info = "";
+            Debug.Log("Recv: <" + server_cmd + ">");
+            CommandHandler(server_cmd);
+            server_cmd = "";
         }
     }
 
@@ -44,47 +46,58 @@ public class AlternativeNetwork : MonoBehaviour
             SetConnectionStatus(Color.green, "Connected to the server! Token verified !");
             ready_button.gameObject.SetActive(true);
         }
-
         if (cmd == "READY OK")
         {
             SetConnectionStatus(Color.blue, "You are ready !");
         }
+        if (cmd == "GAME RUNNING")
+        {
+            SetConnectionStatus(Color.red, "Sorry, the game is running !");
+            Disconnect();
+        }
+
+        if (cmd.Split(':')[0] == "IDE_TOKEN")
+        {
+            ide_token = cmd.Split(':')[1];
+            SetConnectionStatus(Color.white, "This is your ide token: " + ide_token + 
+                "\n Put it in your code to connect to the server from ide");
+        }
+        
+        if (cmd.Split(':')[0] == "INITIAL_DATA")
+        {
+            ide_token = cmd.Split(':')[1];
+            SetConnectionStatus(Color.white, "Initial data received !");
+            SendData(System.Text.Encoding.Default.GetBytes("Hello from unity"));
+        }
+
+        if (cmd == "LOOP")
+        {
+            SendData(System.Text.Encoding.Default.GetBytes("LOOP"));
+        }
     }
 
-    public async void ConnectToServerButton()
+    public void ConnectToServerButton()
     {
         SetupServer();
-        
-        try
-        {
-            SendData(System.Text.Encoding.Default.GetBytes(UNITY_TOKEN));
-        }
-        catch
-        {
-            SetConnectionStatus(Color.red, "Error validating the token !");
-        }        
+        SendData(System.Text.Encoding.Default.GetBytes(UNITY_TOKEN));       
     }
 
+    public void ReadyButton()
+    {
+        SendData(System.Text.Encoding.Default.GetBytes("READY"));
+    }
 
-
-    public async void ReadyButton()
+    private void SetupServer()
     {
         try
         {
-            SendData(System.Text.Encoding.Default.GetBytes("READY"));
-        }
-        catch
-        {
-            SetConnectionStatus(Color.blue, "Error while getting ready !");
-        }
-    }
-
-
-    private async void SetupServer()
-    {
-        try
-        {
-            _clientSocket.Connect("127.0.0.1", 50000);
+            if (ip_text.text == "" || port_text.text == "")
+            {
+                SetConnectionStatus(Color.red, "Empty fields !");
+                return;
+            }
+           
+            _clientSocket.Connect(ip_text.text, int.Parse(port_text.text));
             connected = true;
         }
         catch (SocketException ex)
@@ -113,7 +126,7 @@ public class AlternativeNetwork : MonoBehaviour
         Buffer.BlockCopy(_recieveBuffer, 0, recData, 0, recieved);
 
         //Process data here the way you want , all your bytes will be stored in recData
-        from_server_info = System.Text.Encoding.Default.GetString(recData);
+        server_cmd = System.Text.Encoding.Default.GetString(recData);
 
         //Start receiving again
         _clientSocket.BeginReceive(_recieveBuffer, 0, _recieveBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
@@ -121,32 +134,48 @@ public class AlternativeNetwork : MonoBehaviour
 
     private void SendData(byte[] data)
     {
-        SocketAsyncEventArgs socketAsyncData = new SocketAsyncEventArgs();
-        socketAsyncData.SetBuffer(data, 0, data.Length);
-        _clientSocket.SendAsync(socketAsyncData);
+        try
+        {
+            SocketAsyncEventArgs socketAsyncData = new SocketAsyncEventArgs();
+            socketAsyncData.SetBuffer(data, 0, data.Length);
+            _clientSocket.SendAsync(socketAsyncData);
+        }
+        catch
+        {
+            Debug.Log("Error in sending data!");
+        }
     }
 
 
-    private async void SetConnectionStatus(Color color, string message)
+    private void SetConnectionStatus(Color color, string message)
     {
         connection_status.text = message;
         connection_status.color = color;
     }
 
+    private void Disconnect()
+    {
+        try
+        {
+            connected = false;
+            _clientSocket.Shutdown(SocketShutdown.Both);
+
+            _clientSocket.Disconnect(true);
+            if (_clientSocket.Connected)
+                Debug.Log("We're still connnected");
+            else
+                Debug.Log("We're disconnected");
+
+            _clientSocket.Close();
+        }
+        catch
+        {
+            Debug.Log("Error in disconnecting !");
+        }
+    }
 
     void OnApplicationQuit()
     {
-        connected = false;
-        
-        _clientSocket.Shutdown(SocketShutdown.Both);
-
-        _clientSocket.Disconnect(true);
-        if (_clientSocket.Connected)
-            Debug.Log("We're still connnected");
-        else
-            Debug.Log("We're disconnected");
-
-
-        _clientSocket.Close();
+        Disconnect();
     }
 }

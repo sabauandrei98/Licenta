@@ -12,9 +12,9 @@ class Game:
 		self.players_number = len(self.tokens_list)
 
 	def initial_data(self):
+		data = "INITIAL_DATA:"
+		return data
 
-		#randomly generated map
-		pass
 
 
 

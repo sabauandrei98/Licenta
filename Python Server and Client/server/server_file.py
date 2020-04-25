@@ -9,11 +9,10 @@ from Game import Game
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = 50000
 DEFAULT_LISTEN = 5
-
-RECV_READY_RESPONSE_TIMEOUT = 20
 RECV_SIZE_BYTES = 1024
-
 MAX_PLAYERS = 4
+
+WAIT_FOR_CLIENT_TIME = 1
 
 class Server:
 
@@ -59,16 +58,23 @@ class Server:
 					if (ide_token == ""):
 						self.disconnect_one(client_socket)
 					else:
+						client_found = False
 						for client in self.clients:
 							if client.ide_token == ide_token and not client.is_ide_connected:
+								client_found = True
 								client.ide_socket = client_socket
 								client.is_ide_connected = True
 								client.ide_socket.send("Token verified ! You are now connected to the server !")
+								client.start_new_socket_handler(client_socket, "ide")
 								print ("Ide linked with Unity and ready to play !")
+
+						if not client_found:
+							client_socket.send("GAME RUNNING")
+							self.disconnect_one(client_socket)
 
 				#IN THE GAME, REJECT ANY CONNECTION
 				if self.all_ide_clients_ready:
-				   client_socket.send("Sorry, the game is running ! Try again later !")
+				   client_socket.send("GAME RUNNING")
 				   print("A client tried to connect while playing !")
 				   self.disconnect_one(client_socket)
 				
@@ -107,7 +113,7 @@ class Server:
 				if client.is_ide_connected:
 					ready_ides += 1
 
-			if ready_ides == len(clients):
+			if ready_ides == len(self.clients) and ready_ides > 0:
 				self.all_ide_clients_ready = True
 
 			time.sleep(1)
@@ -119,14 +125,46 @@ class Server:
 			if self.all_ide_clients_ready:
 				print("Game Manager Started !\n")
 
-				#send initial data
+				#send initial data to unity 
+				game_rules = Game(self.tokens)
+				for client in self.clients:
+					client.unity_write = game_rules.initial_data()
 
 				while True:
-					#unity -> server -> ide
-					
 
-					#ide -> server -> unity
-					pass
+					#initial data has been sent
+					#now unity will create a data packet which will be sent to ide
+					#wait for unity response
+					time.sleep(WAIT_FOR_CLIENT_TIME)
+
+					#UNITY -> SERVER -> IDE
+					#now check if all unity clients sent back some info
+					#disconnect if no data received from client
+
+					for client in self.clients:
+						if client.unity_read != "" and client.unity_read != ".":
+							#data received, wohoooo
+							#send raw data to ide because there is no need for processing it
+							client.ide_write = client.unity_read
+							client.unity_read = "."
+						else:
+							self.disconnect_one(client)
+
+
+					#at this point one flow is done
+					#wait for ide response
+					time.sleep(WAIT_FOR_CLIENT_TIME)
+
+					#IDE -> SERVER -> UNITY
+
+					for client in self.clients:
+						if client.ide_read != "" and client.ide_read != ".":
+							#data received, wohoooo
+							#we must process data collected from all the ides
+							client.unity_write = client.ide_read
+							client.ide_read = "."
+						else:
+							self.disconnect_one(client)
 
 
 
@@ -143,8 +181,8 @@ class Server:
 				print("Tokens generated !\n")
 			
 				for index, client in enumerate(self.clients):
-					client.ide_token = tokens[index]
-					client.unity_write = "IDE_TOKEN:" + tokens[index]	
+					client.ide_token = self.tokens[index]
+					client.unity_write = "IDE_TOKEN:" + self.tokens[index]	
 
 				print("Tokens linked !\n")	
 				return		
@@ -152,14 +190,26 @@ class Server:
 			time.sleep(1)
 
 	def disconnect_one(self, client):
-		self.clients.remove(client)
+
+		#maybe this client tried to reconnect but never been added
+		#to the list of clients, make sure we can remove it
+		#client param can be Client class instance or socket 
+
 		try:
-			if client.unity_socket != None:
-				client.unity_socket.shutdown(socket.SHUT_RDWR)
-				client.unity_socket.close()
-			if client.ide_socket != None:
-				client.ide_socket.shutdown(socket.SHUT_RDWR)
-				client.ide_socket.close()
+			if client in self.clients:
+				self.clients.remove(client)
+
+				if client.unity_socket != None:
+					client.unity_socket.shutdown(socket.SHUT_RDWR)
+					client.unity_socket.close()
+				if client.ide_socket != None:
+					client.ide_socket.shutdown(socket.SHUT_RDWR)
+					client.ide_socket.close()
+			else:
+				#this is a socket, not a client
+				client.shutdown(socket.SHUT_RDWR)
+				client.close()
+
 		except Exception as ex:
 			print ("Client could not be disconnected !" + str(ex))
 			return
@@ -202,7 +252,7 @@ class Server:
 
 		new_clients_manager_th.start()
 		disconnected_manager_th.start()
-		unity_lobby_manager_th.start()
+		lobby_manager_th.start()
 		link_tokens_manager_th.start()
 		game_manager_th.start()
 
