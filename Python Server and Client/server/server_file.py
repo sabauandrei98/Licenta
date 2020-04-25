@@ -3,102 +3,39 @@ import threading
 import time
 
 from Client import Client
+from Game import Game
 
 #connection
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = 50000
-DEFAULT_LISTEN = 1
-UNITY_TOKEN = "439b3a25b555b3bc8667a09a036ae70c"
+DEFAULT_LISTEN = 5
 
-RECV_TOKEN_TIMEOUT = 20.5
 RECV_READY_RESPONSE_TIMEOUT = 20
-RECV_SIZE_BYTES = 64
+RECV_SIZE_BYTES = 1024
 
-MAX_PLAYERS = 2
+MAX_PLAYERS = 4
 
 class Server:
 
 	def __init__(self, host = None, port = None):
 		self.host = DEFAULT_HOST if not host else host
 		self.port = DEFAULT_PORT if not port else port
-
 		self.all_unity_clients_ready = False
 		self.all_ide_clients_ready = False
-
-		#available tokens for clients
-		'''TO DO: generate tokens randomly'''
-		self.tokens  = ["token1", "token2"]
-
-		#used tokens (avoid sending info to server on the same token on 2 different sockets)
-		self.used_tokens = {key: False for key in self.tokens}
-
 		self.clients = []
-
+		self.tokens = []
 
 	def create_server_socket(self):
 		try:
 			self.s_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.s_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			self.s_socket.bind((self.host, self.port))
 			self.s_socket.listen(DEFAULT_LISTEN)
 			print ("SERVER ON ! " + self.host + ":" + str(self.port))
-
 		except Exception as error:
 			print ("Could not create server socket: " + str(error))
 
-
-	def has_valid_token(self, client_socket):
-		
-		try:
-			#check the token from the client 
-			#to verify if it is authorized to join this server
-			client_socket.settimeout(RECV_TOKEN_TIMEOUT)
-			client_token = client_socket.recv(RECV_SIZE_BYTES)
-
-			if client_token in self.tokens and self.used_tokens[client_token] is False or client_token == UNITY_TOKEN:
-
-				if client_token != UNITY_TOKEN:
-					self.used_tokens[client_token] = True
-				return True
-			else:
-				print ("Wrong token from the client OR already used in a connection !")
-				return False
-
-		except socket.timeout:
-			print("This client has been disconnected due to timeout !")
-			client_socket.close()
-
-		except socket.error:
-			print("Oops there was an socket error and connection was closed !")
-			client_socket.close()
-
-		return False
-
-
-	def is_client_connected(self, client_socket):
-
-		client_ip = ""
-		client_port = ""
-		try:
-			client_ip = client_socket.getpeername()[0]
-			client_port = client_socket.getpeername()[1]
-
-		except Exception as error:
-			print("Disconnected 1")
-			return False
-
-
-		try:
-			fake_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			fake_socket.connect((client_ip, client_port))
-			fake_data = fake_socket.recv(16, socket.MSG_PEEK)
-
-		except Exception as error:
-			print("Disconnected 2" + str(error))
-			return False
-
-
 	def new_clients_manager(self):
-
 		print ("New Clients Manager Started !\n")
 
 		try:
@@ -106,82 +43,169 @@ class Server:
 				#wait for a new player
 				client_socket, addr = self.s_socket.accept()
 
-				if self.has_valid_token(client_socket):
-
-					#still in unity lobby
-					if not self.all_unity_clients_ready:
-
-						print("New Client connected !" + str(client_socket.getpeername()))
-
-						client = Client()
-						client.RECV_TIMEOUT = RECV_READY_RESPONSE_TIMEOUT
-						client.start_new_socket_handler(client_socket, "unity_lobby")
+				#IN UNITY LOBBY
+				if not self.all_unity_clients_ready and len(self.clients) < MAX_PLAYERS:
+					client = Client(client_socket)
+					if (client.has_valid_token(client_socket, client.UNITY_TOKEN)):
+						print("New Client connected ! Verified token !" + str(client_socket.getpeername()))
+						client.is_connected = True
+						client.start_new_socket_handler(client_socket, "unity")
 						self.clients.append(client)
-
+				
+				#IN READY MODE, WAITING FOR IDE TO CONNECT
+				if self.all_unity_clients_ready and not self.all_ide_clients_ready:
+					#search for the token and link unity to one ide
+					ide_token = client_socket.recv(RECV_SIZE_BYTES)
+					if (ide_token == ""):
+						self.disconnect_one(client_socket)
 					else:
-						#search for the token and link unity to one ide
-						pass
+						for client in self.clients:
+							if client.ide_token == ide_token and not client.is_ide_connected:
+								client.ide_socket = client_socket
+								client.is_ide_connected = True
+								client.ide_socket.send("Token verified ! You are now connected to the server !")
+								print ("Ide linked with Unity and ready to play !")
+
+				#IN THE GAME, REJECT ANY CONNECTION
+				if self.all_ide_clients_ready:
+				   client_socket.send("Sorry, the game is running ! Try again later !")
+				   print("A client tried to connect while playing !")
+				   self.disconnect_one(client_socket)
 				
 		except Exception as e:
 			print ("Exception :" + str(e))
-			
 		finally:
+			self.disconnect_all()
 			self.s_socket.close()
 			print("Server socket was closed !")
 
 
-
-	def unity_lobby_manager(self):
-
+	def lobby_manager(self):
 		print("Unity Lobby Manager Started !\n")
 
-		checked_clients = {}
 		while not self.all_unity_clients_ready:
-
-			connected = 0
+			ready_clients = 0
 			for client in self.clients:
+				if not client.lobby_ready:
+					if client.unity_read == "READY":
+						client.lobby_ready = True
+						client.unity_write = "READY OK"
+						ready_clients += 1
+				else:
+					ready_clients += 1
 
-				if client.unity_read == "READY!":
-					connected += 1
 
-			if connected == len(self.clients) and connected != 0:
+			if ready_clients == len(self.clients) and ready_clients > 0:
 				self.all_unity_clients_ready = True
-				print("All unity clients ready !")
-				self.clients[0].unity_socket.send("1salut" + "\n")
-				self.clients[0].unity_socket.send("2salut" + "\n")
+				print("##### All unity clients ready ! ####\n")
 
-			time.sleep(0.1)
+			time.sleep(1)
 
+		while not self.all_ide_clients_ready:
+			ready_ides = 0
+			for client in self.clients:
+				if client.is_ide_connected:
+					ready_ides += 1
+
+			if ready_ides == len(clients):
+				self.all_ide_clients_ready = True
+
+			time.sleep(1)
+
+	def game_manager(self):
+
+		while True:
+
+			if self.all_ide_clients_ready:
+				print("Game Manager Started !\n")
+
+				#send initial data
+
+				while True:
+					#unity -> server -> ide
+					
+
+					#ide -> server -> unity
+					pass
+
+
+
+	def link_tokens_manager(self):
+
+		while True:
+			if self.all_unity_clients_ready:
+
+				print("Link Tokens Manager Started !\n")
+
+				#generate some fancy tokens
+				self.tokens = ["token1", "token2", "token3"]
+
+				print("Tokens generated !\n")
+			
+				for index, client in enumerate(self.clients):
+					client.ide_token = tokens[index]
+					client.unity_write = "IDE_TOKEN:" + tokens[index]	
+
+				print("Tokens linked !\n")	
+				return		
+
+			time.sleep(1)
+
+	def disconnect_one(self, client):
+		self.clients.remove(client)
+		try:
+			if client.unity_socket != None:
+				client.unity_socket.shutdown(socket.SHUT_RDWR)
+				client.unity_socket.close()
+			if client.ide_socket != None:
+				client.ide_socket.shutdown(socket.SHUT_RDWR)
+				client.ide_socket.close()
+		except Exception as ex:
+			print ("Client could not be disconnected !" + str(ex))
+			return
+
+		print ("One client disconnected !")
+
+	def disconnect_all(self):
+		for client in self.clients:
+			self.disconnect_one(client)
+		print ("All clients disconnected !")
 
 	def disconnected_manager(self):
+		print ("Disconnected Manager Started ! \n")
 		while True:
-			print("Checking for disconnected players...")
 			for client in self.clients:
-				
-				if self.is_client_connected(client.unity_socket) == False:
-					print("SERVER: Client disconnected from the server !")
-
-			time.sleep(3)
+				if client.is_connected == False:
+					self.disconnect_one(client)				
+			time.sleep(0.5)
 
 
 	def run(self):
 		self.create_server_socket()
 		time.sleep(0.5)
 
-		#this thread will link the clients with the server
+		#this thread will check for new players
 		new_clients_manager_th = threading.Thread(target = self.new_clients_manager, args = ())
-		
+
 		#this thread will check if one client has disconnected
 		disconnected_manager_th = threading.Thread(target = self.disconnected_manager, args = ())
 
-		#this thread will check if all the unity clients are ready (while in lobby)
-		unity_lobby_manager_th = threading.Thread(target = self.unity_lobby_manager, args = ())
+		#this thread will check if all the unity & ide clients are ready (while in lobby)
+		lobby_manager_th = threading.Thread(target = self.lobby_manager, args = ())
 
-		#this thread will check if all the ide clients are ready 
+		#this thread will generate and send tokens to unity which will be used by the ides to connect
+		link_tokens_manager_th = threading.Thread(target = self.link_tokens_manager, args = ())
+
+		#this thread will first send the initial data for each player to the unity
+		#then will manage the flow unity -> server -> ide and backwards
+		game_manager_th = threading.Thread(target = self.game_manager, args = ())
 
 		new_clients_manager_th.start()
-		#disconnected_manager_th.start()
-		#unity_lobby_manager_th.start()
+		disconnected_manager_th.start()
+		unity_lobby_manager_th.start()
+		link_tokens_manager_th.start()
+		game_manager_th.start()
+
 
 
 

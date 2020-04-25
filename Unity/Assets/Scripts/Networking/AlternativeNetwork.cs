@@ -13,13 +13,13 @@ public class AlternativeNetwork : MonoBehaviour
     public Button ready_button;
 
 
-    private bool canSend = true;
-    private string received = "";
+    private string from_server_info = "";
 
     private Socket _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-    private byte[] _recieveBuffer = new byte[8142];
+    private byte[] _recieveBuffer = new byte[512];
 
     private const string UNITY_TOKEN = "439b3a25b555b3bc8667a09a036ae70c";
+    private bool connected = false;
 
     void Start()
     {
@@ -27,99 +27,84 @@ public class AlternativeNetwork : MonoBehaviour
         ready_button.onClick.AddListener(delegate { ReadyButton(); });
     }
 
+    void Update()
+    {
+        if (from_server_info != "")
+        {
+            Debug.Log("Recv: <" + from_server_info + ">");
+            CommandHandler(from_server_info);
+            from_server_info = "";
+        }
+    }
+
+    void CommandHandler(string cmd)
+    {
+        if(cmd == "TOKEN OK")
+        {
+            SetConnectionStatus(Color.green, "Connected to the server! Token verified !");
+            ready_button.gameObject.SetActive(true);
+        }
+
+        if (cmd == "READY OK")
+        {
+            SetConnectionStatus(Color.blue, "You are ready !");
+        }
+    }
+
     public async void ConnectToServerButton()
     {
         SetupServer();
-        await Task.Factory.StartNew(CheckToken);
-    }
-
-    private async void ReadyButton()
-    {
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-
-        string result = await ReceiveData();
-        Debug.Log("msg:" + result);
-
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-
-        result = await ReceiveData();
-        Debug.Log("msg:" + result);
-    }
-
-    private async Task CheckToken()
-    {
+        
         try
         {
             SendData(System.Text.Encoding.Default.GetBytes(UNITY_TOKEN));
-
-            string result = await ReceiveData();
-            Debug.Log("SERVER:" + result);
-
-            SetConnectionStatus(Color.green, "Connected to the server !");
         }
         catch
         {
             SetConnectionStatus(Color.red, "Error validating the token !");
-        }
+        }        
     }
 
 
-    private async Task NetworkFlow()
-    {
-        string result = await ReceiveData();
-        Debug.Log("msg:" + result);
 
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-
-        result = await ReceiveData();
-        Debug.Log("msg:" + result);
-
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-
-        result = await ReceiveData();
-        Debug.Log("msg:" + result);
-
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-
-        result = await ReceiveData();
-        Debug.Log("msg:" + result);
-
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-
-        result = await ReceiveData();
-        Debug.Log("msg:" + result);
-
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-
-        result = await ReceiveData();
-        Debug.Log("msg:" + result);
-
-        SendData(System.Text.Encoding.Default.GetBytes("ping"));
-    }
- 
-    
-
-
-    private void SetupServer()
+    public async void ReadyButton()
     {
         try
         {
-            _clientSocket.Connect(new IPEndPoint(IPAddress.Loopback, 50000));
+            SendData(System.Text.Encoding.Default.GetBytes("READY"));
+        }
+        catch
+        {
+            SetConnectionStatus(Color.blue, "Error while getting ready !");
+        }
+    }
+
+
+    private async void SetupServer()
+    {
+        try
+        {
+            _clientSocket.Connect("127.0.0.1", 50000);
+            connected = true;
         }
         catch (SocketException ex)
         {
-            SetConnectionStatus(Color.red, "Could not connect to the server !");
-            Debug.Log(ex.Message);
+            string error = ex.Message;
+            Debug.Log(error);
+
+            if (!error.Contains("A connect request was made on an already connected socket."))
+                SetConnectionStatus(Color.red, "Could not connect to the server");
+            return;
         }
 
-        _clientSocket.BeginReceive(_recieveBuffer, 0, _recieveBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
+       _clientSocket.BeginReceive(_recieveBuffer, 0, _recieveBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
     }
 
     private void ReceiveCallback(IAsyncResult AR)
     {
         //Check how much bytes are recieved and call EndRecieve to finalize handshake
         int recieved = _clientSocket.EndReceive(AR);
-
+        
         if (recieved <= 0)
             return;
 
@@ -128,7 +113,7 @@ public class AlternativeNetwork : MonoBehaviour
         Buffer.BlockCopy(_recieveBuffer, 0, recData, 0, recieved);
 
         //Process data here the way you want , all your bytes will be stored in recData
-        received = System.Text.Encoding.Default.GetString(_recieveBuffer);
+        from_server_info = System.Text.Encoding.Default.GetString(recData);
 
         //Start receiving again
         _clientSocket.BeginReceive(_recieveBuffer, 0, _recieveBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
@@ -141,31 +126,27 @@ public class AlternativeNetwork : MonoBehaviour
         _clientSocket.SendAsync(socketAsyncData);
     }
 
-    private async Task<string> ReceiveData()
-    {
-        while (true)
-        {
-            if (received != "")
-            {
-                string result = received;
-                received = "";
-                return result;
-            }
-        }
-    }
 
-    private void SetConnectionStatus(Color color, string message)
+    private async void SetConnectionStatus(Color color, string message)
     {
-        if (connection_status == null)
-            return;
-
-        connection_status.color = color;
         connection_status.text = message;
+        connection_status.color = color;
     }
 
 
     void OnApplicationQuit()
     {
+        connected = false;
+        
+        _clientSocket.Shutdown(SocketShutdown.Both);
+
+        _clientSocket.Disconnect(true);
+        if (_clientSocket.Connected)
+            Debug.Log("We're still connnected");
+        else
+            Debug.Log("We're disconnected");
+
+
         _clientSocket.Close();
     }
 }
