@@ -2,6 +2,16 @@
 
 CURRENT PROGRESS LOG: 
 
+- Game level generation for the unity game 
+- Model loading for the unity game and some simple set up for the scene
+- Some minimalist Unity UI to check the connection to the python server + user friendly feedback
+- Implemented a game manager that ensures the flow of data from unity -> server -> python and backwards and disconnects players if they do not provide input/output
+- Implemented a thread that deals with the disconnected players and safely removes them from the server
+- Token sending to the unity clients after all the clients from the lobby are ready to play
+- Lobby manager implemented in py server to simulate a room for players
+- Handeled some errors and some stupid scenarios which led to unity clients not responding or broken sockets
+- Socket Read & Write implemented on threads for better communication
+- Python Server split in classes to track the things better
 - Unity Client async pipeline methods to server to avoid freezing the app
 - Unity Client sends and receives data from python server
 - Unity Client networking, successfully connecting to the python server
