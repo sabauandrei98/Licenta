@@ -526,7 +526,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &621408006
 RectTransform:
   m_ObjectHideFlags: 0
@@ -971,6 +971,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connection_status: {fileID: 1753850619}
+  ip_text: {fileID: 673339801}
+  port_text: {fileID: 141329551}
   connect_to_server_button: {fileID: 1006957122}
   ready_button: {fileID: 621408007}
 --- !u!4 &852912680
