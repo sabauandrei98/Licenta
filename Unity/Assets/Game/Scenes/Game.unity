@@ -2949,37 +2949,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12f8174657938814bac316f026252a30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  obstacles_list:
-  - {fileID: 100002, guid: 1ba212f4e3dbc2d4b82a6e8df5c61a59, type: 3}
-  - {fileID: 100002, guid: 9d907d12a9759ce43a1849eeebd4e1d7, type: 3}
-  - {fileID: 100002, guid: 091b0536511611c4faa94f2da2fd0993, type: 3}
-  - {fileID: 100002, guid: 5d97b593c7cf7db4e947d1080b83d1b2, type: 3}
-  - {fileID: 100002, guid: f242109eecf24bd46899e8fe819211b6, type: 3}
-  - {fileID: 100002, guid: 4859ecd5ac8593245829241fe164b885, type: 3}
-  - {fileID: 100002, guid: 40ff38426eaab8540bcd91e9cf1d5d45, type: 3}
-  - {fileID: 100002, guid: 59c17a24ab7936740af967a8272786dc, type: 3}
-  - {fileID: 100002, guid: 8e50575976567ee4499bfd2bd38366cd, type: 3}
-  - {fileID: 100002, guid: 93ab58d5fe47d48469f5b7e1b65ee6a8, type: 3}
-  - {fileID: 100002, guid: 5c1c061f368b4184d8c6f0ee26a2cef5, type: 3}
-  - {fileID: 100002, guid: 9b1c0a0702c0a7c438bcc224e6d55b37, type: 3}
-  - {fileID: 100002, guid: b001ad684d6f09042a23cc752e07078c, type: 3}
-  - {fileID: 100002, guid: 541aa5536f7953c489a76128fefa5762, type: 3}
-  - {fileID: 100002, guid: 57dd8d3e33707264c876acfd826ad57a, type: 3}
-  - {fileID: 100002, guid: 5269475f9177b004686d8dbce858278e, type: 3}
-  - {fileID: 100002, guid: a0fbbf2f0a467ff47bebfa04f4103591, type: 3}
-  - {fileID: 100002, guid: d98d4a024b2425b499bfe982650a3511, type: 3}
-  - {fileID: 100002, guid: b0c87ce01fb03844c9e59d54c2f17480, type: 3}
-  - {fileID: 100002, guid: 9a1e919d2c9c10844973b213e2074520, type: 3}
-  - {fileID: 100002, guid: 95994e8fcc77ca64abbb1f3dfe671992, type: 3}
-  - {fileID: 100002, guid: ce6d6f6a453ef5942b3f7ed4efb899e9, type: 3}
-  - {fileID: 100002, guid: 5ee0afd19fd897d44b828a17be9f4c99, type: 3}
-  - {fileID: 100002, guid: 7b079442117c9b8478e19b98a8ee6882, type: 3}
-  - {fileID: 100002, guid: d9d0773781544ad4fb989549b57045b1, type: 3}
-  - {fileID: 100002, guid: ce22e46a0d3c7ce4f8715496427fba7d, type: 3}
+  obstacles_list_obj:
   - {fileID: 100002, guid: 2e72740efebdbb7419f4dbabc77c9071, type: 3}
-  map_stone: {fileID: 203979047445587463, guid: 93dd1a1b953d03740b1558925e772bee,
+  map_stone_obj: {fileID: 203979047445587463, guid: 93dd1a1b953d03740b1558925e772bee,
     type: 3}
-  pumpkin: {fileID: 4959111296043177155, guid: f89b53e5e67ddb0498e19beb0669f14c, type: 3}
+  pumpkin_obj: {fileID: 4959111296043177155, guid: f89b53e5e67ddb0498e19beb0669f14c,
+    type: 3}
 --- !u!1001 &1297157454
 PrefabInstance:
   m_ObjectHideFlags: 0

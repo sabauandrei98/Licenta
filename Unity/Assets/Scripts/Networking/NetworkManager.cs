@@ -68,10 +68,13 @@ public class NetworkManager : MonoBehaviour
             ide_token = cmd.Split(':')[1];
             SetConnectionStatus(Color.white, "Initial data received !");
             SendData(System.Text.Encoding.Default.GetBytes("Hello from unity"));
+            //load map function
         }
 
+        //this will have each game info
         if (cmd == "LOOP")
         {
+            //then will retreive the map
             SendData(System.Text.Encoding.Default.GetBytes("LOOP"));
         }
     }

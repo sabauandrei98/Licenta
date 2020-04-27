@@ -2,6 +2,7 @@
 
 CURRENT PROGRESS LOG: 
 
+- Unity Game manager: implemented helper functions and handled some commands from the server + different player types and obstacles spawning
 - Game level generation for the unity game 
 - Model loading for the unity game and some simple set up for the scene
 - Some minimalist Unity UI to check the connection to the python server + user friendly feedback
@@ -9,7 +10,7 @@ CURRENT PROGRESS LOG:
 - Implemented a thread that deals with the disconnected players and safely removes them from the server
 - Token sending to the unity clients after all the clients from the lobby are ready to play
 - Lobby manager implemented in py server to simulate a room for players
-- Handeled some errors and some stupid scenarios which led to unity clients not responding or broken sockets
+- Handled some errors and some stupid scenarios which led to unity clients not responding or broken sockets
 - Socket Read & Write implemented on threads for better communication
 - Python Server split in classes to track the things better
 - Unity Client async pipeline methods to server to avoid freezing the app
