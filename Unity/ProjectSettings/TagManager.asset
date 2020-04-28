@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - FarmerStats
+  - HumanStats
+  - ZombieStats
+  - SkeletonStats
   layers:
   - Default
   - TransparentFX
