@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,13 +13,18 @@ public class GameManager : MonoBehaviour
     private List<GameObject> players_list = new List<GameObject>();
     private List<GameObject> pumpkins_list = new List<GameObject>();
     private List<GameObject> bombs_list = new List<GameObject>();
+    private List<Vector3> bombs_details = new List<Vector3>();
+    string[] races = new string[4] { "Farmer", "Human", "Zombie", "Skeleton" };
 
     private int map_obstacles_number;
     private int map_pumpkins_number;
     private int number_of_players;
-    private int bomb_range = 2;
 
-    private float time_between_rounds = 0.1f;
+    private int bomb_range = 2;
+    private int bomb_detonate_time = 8;
+    private float time_between_rounds = 0.5f;
+    private bool once = false;
+    
 
     //this simulates data flow
     IEnumerator SimulateGame(float time)
@@ -37,6 +43,8 @@ public class GameManager : MonoBehaviour
         PrepareGame(map, tokens);
 
         StartCoroutine(SimulateGame(time_between_rounds));
+
+        
     }
 
 
@@ -44,6 +52,7 @@ public class GameManager : MonoBehaviour
     {
         LoadMap(map);
         LoadPlayers(tokens);
+        UpdateRacesOnMap();
     }
 
    
@@ -51,21 +60,27 @@ public class GameManager : MonoBehaviour
     void ProcessOneRound()
     {
         //first execute bombs
-        //ExecuteBombs();
+        ExecuteBombs();
 
         //check if end of the game
-        //if (EndOfTheGame())
+        if (EndOfTheGame())
         {
-            //notify network
+            Debug.Log("GAME OVER !");
         }
 
         if (single_player)
         {
-            string ai_cmd = players_list[1].GetComponent<AIPlayer>().MoveAI(game_map);
-            Debug.Log("AI: " + ai_cmd);
+            string ai_cmd = players_list[1].GetComponent<AIPlayer>().MoveAI(players_list[1].transform.position, ref game_map, bombs_details);
+            //Debug.Log("AI: " + ai_cmd);
+
 
             string player_cmd = "MOVE 0 1";
-            Debug.Log("PLAYER: " + player_cmd);
+            if (!once)
+            {
+                player_cmd = "BOMB";
+                once = true;
+            }
+            //Debug.Log("PLAYER: " + player_cmd);
 
             HandleCommand(player_cmd, 0);
             HandleCommand(ai_cmd, 1);
@@ -84,6 +99,8 @@ public class GameManager : MonoBehaviour
         }
 
         RemovePumpkinsIfCollected();
+        UpdateRacesOnMap();
+        gameObject.GetComponent<DebugManager>().Notify(ref game_map, ref bombs_details);
     }
 
     
@@ -100,13 +117,17 @@ public class GameManager : MonoBehaviour
                 players_list[player_index].GetComponent<Player>().IncreasePoints();
 
             if (game_map[x][y] != 'o')
+            {
                 players_list[player_index].GetComponent<Player>().MovePlayerToPosition(x, y);
+            }
+                
         }
 
         //place bomb
         if (cmd.Split(' ')[0] == "BOMB")
         {
-            //WILL BE ADDED TO THE LIST
+            bombs_list.Add(Instantiate(ResourceLoader.LoadBomb(), players_list[player_index].transform.position, Quaternion.identity) as GameObject);
+            bombs_details.Add(new Vector3(players_list[player_index].transform.position.x, players_list[player_index].transform.position.z, bomb_detonate_time));
         }
     }
 
@@ -125,55 +146,80 @@ public class GameManager : MonoBehaviour
 
         return false;
     }
-
    
     void ExecuteBombs()
     {
         int[] dx = new int[4] { 0, 1, 0, -1 };
         int[] dy = new int[4] { 1, 0,-1,  0 };
 
-        for (int i = 0; i < map_size; i++)
-            for (int j = 0; j < map_size; j++)
+        for(int bomb_index = 0; bomb_index < bombs_details.Count; bomb_index++)
+            if (bombs_details[bomb_index].z == 0)
             {
+                int bomb_x = (int)bombs_details[bomb_index].x;
+                int bomb_y = (int)bombs_details[bomb_index].y;
+ 
                 for (int player = 0; player < players_list.Count; player++)
                 {
-                    bool hit = false;
-                    float x = players_list[player].gameObject.transform.position.x;
-                    float y = players_list[player].gameObject.transform.position.z;
+                    int x = (int)players_list[player].gameObject.transform.position.x;
+                    int y = (int)players_list[player].gameObject.transform.position.z;
 
-                    if (game_map[i][j] == '0')
+                    if (bomb_x == x && bomb_y == y)
                     {
-                        if (i == x && j == y)
-                            hit = true;
-
-                        for (int range = 1; range <= bomb_range && !hit; range++)
+                        players_list[player].GetComponent<Player>().Kill();
+                    }
+                    else
+                        for (int range = 1; range <= bomb_range; range++)
                             for (int ii = 0; ii < 4; ii++)
                             {
-                                int new_pos_x = dx[ii] * range + i;
-                                int new_pos_y = dy[ii] * range + j;
+                                int new_pos_x = dx[ii] * range + bomb_x;
+                                int new_pos_y = dy[ii] * range + bomb_y;
 
                                 if (IsOnMap(new_pos_x, new_pos_y))
                                 {
                                     if (x == new_pos_x && y == new_pos_y)
-                                        hit = true;
+                                    {
+                                        players_list[player].GetComponent<Player>().Kill();
+                                    }
                                 }
                             }
-
-                        //detonate
-                        //remove 0
-                        //remove from the list
-                    }
-
-                    if (hit)
-                        players_list[player].GetComponent<Player>().Kill();
                 }
 
+                Destroy(bombs_list[bomb_index]);
+                bombs_list[bomb_index] = null;
+
+                bombs_details.RemoveAt(bomb_index);
+                bomb_index--;
             }
+            else
+            {
+                bombs_details[bomb_index] = new Vector3(bombs_details[bomb_index].x, bombs_details[bomb_index].y, bombs_details[bomb_index].z - 1);
+            }
+
     }
 
+    private void UpdateRacesOnMap()
+    {
+        for (int player_index = 0; player_index < players_list.Count; player_index++)
+        {
+            for (int i = 0; i < map_size; i++)
+                for (int j = 0; j < map_size; j++)
+                {
+                    if (game_map[i][j] == races[player_index][0])
+                    {
+                        StringBuilder s = new StringBuilder(game_map[i]);
+                        s[j] = '_';
+                        game_map[i] = s.ToString();
+                    }
+                }
 
+            int x = (int)players_list[player_index].transform.position.x;
+            int y = (int)players_list[player_index].transform.position.z;
 
-
+            StringBuilder sb = new StringBuilder(game_map[x]);
+            sb[y] = races[player_index][0];
+            game_map[x] = sb.ToString();
+        }
+    }
 
     private void RemovePumpkinsIfCollected()
     {
@@ -181,6 +227,7 @@ public class GameManager : MonoBehaviour
             for (int j = 0; j < map_size; j++)
                 if (game_map[i][j] == 'p')
                 {
+                    bool found_pumpkin = false;
                     for (int player = 0; player < players_list.Count; player++)
                     {
                         float x = players_list[player].gameObject.transform.position.x;
@@ -188,8 +235,9 @@ public class GameManager : MonoBehaviour
 
                         if (x == i && y == j)
                         {
+                            found_pumpkin = true;
                             StringBuilder sb = new StringBuilder(game_map[i]);
-                            sb[j] = 'x';
+                            sb[j] = '_';
                             game_map[i] = sb.ToString();
 
                             for (int p = 0; p < pumpkins_list.Count; p++)
@@ -205,6 +253,9 @@ public class GameManager : MonoBehaviour
                             }
                         }
                     }
+
+                    if (found_pumpkin)
+                        map_pumpkins_number--;
                 }
     }
 
@@ -221,8 +272,6 @@ public class GameManager : MonoBehaviour
         int AI = 0;
         if (single_player)
             AI = 1;
-
-        string[] races = new string[4] { "Farmer", "Human", "Zombie", "Skeleton" };
 
         for (int i = 0; i < tokens.Length - AI; i++)
         {

@@ -14,7 +14,7 @@ public class MapGenerator
         {
             string row = "";
             for (int j = 0; j < size_of_map; j++)
-                row += 'x';
+                row += '_';
             map[i] = row;
         }
 
@@ -23,7 +23,7 @@ public class MapGenerator
             int x = Random.Range(0, size_of_map);
             int y = Random.Range(0, size_of_map);
 
-            if (map[x][y] == 'x' &&
+            if (map[x][y] == '_' &&
                 (x != 0 || y != 0) && (x != size_of_map - 1 || y != size_of_map - 1) &&
                 (x != size_of_map - 1 || y != 0) && (x != 0 && y != size_of_map - 1))
             {
@@ -35,7 +35,7 @@ public class MapGenerator
                 for (int i = 0; i < 2; i++)
                     for (int j = 0; j < 2; j++)
                     {
-                        if (map[x_val[i]][y_val[j]] != 'x')
+                        if (map[x_val[i]][y_val[j]] != '_')
                             ok = false;
                     }
 

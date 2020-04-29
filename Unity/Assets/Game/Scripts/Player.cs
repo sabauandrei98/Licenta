@@ -41,11 +41,6 @@ public class Player : MonoBehaviour
         gameObject.transform.position = new Vector3(x, 0.1f, y);
     }
 
-    public void PlaceBomb(int x, int y)
-    {
-        //some particle effects
-    }
-
     public bool IsDead()
     {
         return killed;
