@@ -24,7 +24,6 @@ public class DebugManager : MonoBehaviour
         }
 
     }
-
     private void ShowDebugData()
     {
         string text = "";

@@ -55,6 +55,7 @@
   <ItemGroup>
      <Compile Include="Assets\Game\Scripts\AIPlayer.cs" />
      <Compile Include="Assets\Game\Scripts\DebugManager.cs" />
+     <Compile Include="Assets\Game\Scripts\DetonateObject.cs" />
      <Compile Include="Assets\Game\Scripts\Environment\GraveLight.cs" />
      <Compile Include="Assets\Game\Scripts\GameManager.cs" />
      <Compile Include="Assets\Game\Scripts\MapGenerator.cs" />

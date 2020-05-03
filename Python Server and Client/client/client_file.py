@@ -8,7 +8,7 @@ RECV_SIZE_BYTES = 512
 #connect to server info
 SERVER_ADDRESS  = "localhost"
 SERVER_PORT     = 50000
-CLIENT_TOKEN    = "token1"
+CLIENT_TOKEN    = "token2"
 
 class Client:
 

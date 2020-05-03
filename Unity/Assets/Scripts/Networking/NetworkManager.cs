@@ -65,10 +65,21 @@ public class NetworkManager : MonoBehaviour
         
         if (cmd.Split(':')[0] == "INITIAL_DATA")
         {
+            //load the scene
+
             ide_token = cmd.Split(':')[1];
-            SetConnectionStatus(Color.white, "Initial data received !");
             SendData(System.Text.Encoding.Default.GetBytes("Hello from unity"));
-            //load map function
+
+            //At this point we are on the Game Scene and we can start to load the game
+            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().instance_token = ide_token;
+           // GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().PrepareGame
+
+        }
+
+        if (cmd.Split(':')[0] == "ROUND")
+        {
+            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().ProcessOneRound();
+            SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
         }
 
         //this will have each game info

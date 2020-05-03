@@ -8,22 +8,23 @@ public class GameManager : MonoBehaviour
 {
     public int map_size;
     public bool single_player = true;
+    public string instance_token;
 
     private string[] game_map;
+    private string[] races = new string[4] { "Farmer", "Human", "Zombie", "Skeleton" };
     private List<GameObject> players_list = new List<GameObject>();
     private List<GameObject> pumpkins_list = new List<GameObject>();
     private List<GameObject> bombs_list = new List<GameObject>();
     private List<Vector3> bombs_details = new List<Vector3>();
-    string[] races = new string[4] { "Farmer", "Human", "Zombie", "Skeleton" };
-
-    private int map_obstacles_number;
-    private int map_pumpkins_number;
-    private int number_of_players;
-
+    
+    private int map_obstacles_number = 0;
+    private int map_pumpkins_number = 0;
+    private int number_of_players = 0;
     private int bomb_range = 2;
     private int bomb_detonate_time = 8;
     private float time_between_rounds = 0.5f;
     private bool once = false;
+    private bool game_over = false;
     
 
     //this simulates data flow
@@ -43,22 +44,23 @@ public class GameManager : MonoBehaviour
         PrepareGame(map, tokens);
 
         StartCoroutine(SimulateGame(time_between_rounds));
-
-        
     }
 
 
     public void PrepareGame(string[] map, string[] tokens)
     {
-        LoadMap(map);
+        LoadMapObjects(map);
         LoadPlayers(tokens);
         UpdateRacesOnMap();
     }
 
    
     //some cmd param here
-    void ProcessOneRound()
+    public void ProcessOneRound()
     {
+        if (game_over)
+            return;
+
         //first execute bombs
         ExecuteBombs();
 
@@ -66,6 +68,8 @@ public class GameManager : MonoBehaviour
         if (EndOfTheGame())
         {
             Debug.Log("GAME OVER !");
+            game_over = true;
+            return;
         }
 
         if (single_player)
@@ -92,18 +96,53 @@ public class GameManager : MonoBehaviour
             
         }
 
-        //check if end of the game
-        //if (EndOfTheGame())
-        {
-            //notify network
-        }
-
         RemovePumpkinsIfCollected();
         UpdateRacesOnMap();
         gameObject.GetComponent<DebugManager>().Notify(ref game_map, ref bombs_details);
     }
 
-    
+    public string GetSessionData()
+    {
+        //if the player is dead enter the spectate mode
+        if(IsPlayerDead(instance_token))
+            return "SPECTATE";
+
+        //first store the position of the instance
+        string result = GetPlayerPosition(instance_token).ToString() + " ";
+
+        //then store the other players position
+        for (int i = 0; i < players_list.Count; i++)
+            if (players_list[i].GetComponent<Player>().GetName() != instance_token)
+                result += players_list[i].GetComponent<Player>().transform.position.ToString() + " ";
+
+        //store the map data
+        for (int i = 0; i < map_size; i++)
+            result += game_map[i] + " ";
+
+        //store the bombs position if any
+        for (int i = 0; i < bombs_details.Count; i++)
+            result += bombs_details[i] + " ";
+
+        return result;
+    }
+
+    private bool IsPlayerDead(string token)
+    {
+        for (int i = 0; i < players_list.Count; i++)
+            if (players_list[i].GetComponent<Player>().GetName() == token)
+                if (players_list[i].GetComponent<Player>().IsDead())
+                    return true;
+        return false;
+    }
+
+    private Vector3 GetPlayerPosition(string token)
+    {
+        for (int i = 0; i < players_list.Count; i++)
+            if (players_list[i].GetComponent<Player>().GetName() == token)
+                    return players_list[i].GetComponent<Player>().transform.position;
+
+        return new Vector3();
+    }
 
     private void HandleCommand(string cmd, int player_index)
     {
@@ -127,6 +166,7 @@ public class GameManager : MonoBehaviour
         if (cmd.Split(' ')[0] == "BOMB")
         {
             bombs_list.Add(Instantiate(ResourceLoader.LoadBomb(), players_list[player_index].transform.position, Quaternion.identity) as GameObject);
+            bombs_list[bombs_list.Count - 1].AddComponent<DetonateObject>();
             bombs_details.Add(new Vector3(players_list[player_index].transform.position.x, players_list[player_index].transform.position.z, bomb_detonate_time));
         }
     }
@@ -147,7 +187,7 @@ public class GameManager : MonoBehaviour
         return false;
     }
    
-    void ExecuteBombs()
+    private void ExecuteBombs()
     {
         int[] dx = new int[4] { 0, 1, 0, -1 };
         int[] dy = new int[4] { 1, 0,-1,  0 };
@@ -184,7 +224,7 @@ public class GameManager : MonoBehaviour
                             }
                 }
 
-                Destroy(bombs_list[bomb_index]);
+                bombs_list[bomb_index].GetComponent<DetonateObject>().Detonate("bomb");
                 bombs_list[bomb_index] = null;
 
                 bombs_details.RemoveAt(bomb_index);
@@ -195,30 +235,6 @@ public class GameManager : MonoBehaviour
                 bombs_details[bomb_index] = new Vector3(bombs_details[bomb_index].x, bombs_details[bomb_index].y, bombs_details[bomb_index].z - 1);
             }
 
-    }
-
-    private void UpdateRacesOnMap()
-    {
-        for (int player_index = 0; player_index < players_list.Count; player_index++)
-        {
-            for (int i = 0; i < map_size; i++)
-                for (int j = 0; j < map_size; j++)
-                {
-                    if (game_map[i][j] == races[player_index][0])
-                    {
-                        StringBuilder s = new StringBuilder(game_map[i]);
-                        s[j] = '_';
-                        game_map[i] = s.ToString();
-                    }
-                }
-
-            int x = (int)players_list[player_index].transform.position.x;
-            int y = (int)players_list[player_index].transform.position.z;
-
-            StringBuilder sb = new StringBuilder(game_map[x]);
-            sb[y] = races[player_index][0];
-            game_map[x] = sb.ToString();
-        }
     }
 
     private void RemovePumpkinsIfCollected()
@@ -246,7 +262,7 @@ public class GameManager : MonoBehaviour
                                 {
                                     if (pumpkins_list[p].transform.position.x == x && pumpkins_list[p].transform.position.z == y)
                                     {
-                                        Destroy(pumpkins_list[p]);
+                                        pumpkins_list[p].GetComponent<DetonateObject>().Detonate("pumpkin");
                                         pumpkins_list[p] = null;
                                     }
                                 }
@@ -262,6 +278,30 @@ public class GameManager : MonoBehaviour
     private bool IsOnMap(int x, int y)
     {
         return x >= 0 && y >= 0 && y < map_size && x < map_size;
+    }
+
+    private void UpdateRacesOnMap()
+    {
+        for (int player_index = 0; player_index < players_list.Count; player_index++)
+        {
+            for (int i = 0; i < map_size; i++)
+                for (int j = 0; j < map_size; j++)
+                {
+                    if (game_map[i][j] == races[player_index][0])
+                    {
+                        StringBuilder s = new StringBuilder(game_map[i]);
+                        s[j] = '_';
+                        game_map[i] = s.ToString();
+                    }
+                }
+
+            int x = (int)players_list[player_index].transform.position.x;
+            int y = (int)players_list[player_index].transform.position.z;
+
+            StringBuilder sb = new StringBuilder(game_map[x]);
+            sb[y] = races[player_index][0];
+            game_map[x] = sb.ToString();
+        }
     }
 
     private void LoadPlayers(string[] tokens)
@@ -297,7 +337,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void LoadMap(string[] map)
+    private void LoadMapObjects(string[] map)
     {
         game_map = map;
         map_size = map[0].Length;
@@ -309,6 +349,7 @@ public class GameManager : MonoBehaviour
                 {
                     map_pumpkins_number++;
                     pumpkins_list.Add(Instantiate(ResourceLoader.LoadPumpkin(), new Vector3(i, 0.1f, j), Quaternion.identity) as GameObject);
+                    pumpkins_list[pumpkins_list.Count - 1].AddComponent<DetonateObject>();
                 }
                 if (game_map[i][j] == 'o')
                 {

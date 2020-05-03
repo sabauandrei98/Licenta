@@ -14,7 +14,7 @@ class Client:
 		#DATA TRANSFER VALUES
 		self.RECV_SIZE_BYTES = 1024
 		self.RECV_TOKEN_TIMEOUT = 1
-		self.RECV_TIMEOUT = 20
+		self.RECV_TIMEOUT = 40
 
 		#SOCKETS TO SEND AND RECEIVE INFO FROM UNITY AND IDE
 		self.unity_socket = unity_socket

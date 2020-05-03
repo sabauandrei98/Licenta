@@ -35,6 +35,11 @@ public class Player : MonoBehaviour
         this.player_name = player_name;
     }
 
+    public string GetName()
+    {
+        return player_name;
+    }
+
     public void MovePlayerToPosition(int x, int y)
     {
         //some animation
@@ -48,5 +53,6 @@ public class Player : MonoBehaviour
     public void Kill()
     {
         killed = true;
+        this.gameObject.SetActive(false);
     }
 }

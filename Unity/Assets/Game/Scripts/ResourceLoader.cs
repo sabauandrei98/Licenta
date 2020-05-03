@@ -32,9 +32,19 @@ public class ResourceLoader : MonoBehaviour
         return Resources.Load<GameObject>("Prefabs/Pumpkin");
     }
 
+    public static GameObject LoadPumpkinExplosionParticles()
+    {
+        return Resources.Load<GameObject>("Prefabs/PumpkinExplosionParticles");
+    }
+
     public static GameObject LoadBomb()
     {
         return Resources.Load<GameObject>("KenneyGraveyard/urn");
+    }
+
+    public static GameObject LoadBombExplosionParticles()
+    {
+        return Resources.Load<GameObject>("Prefabs/BombExplosionParticles");
     }
 
     public static GameObject LoadObstacle(int index)
