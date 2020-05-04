@@ -46,10 +46,12 @@ public class NetworkManager : MonoBehaviour
             SetConnectionStatus(Color.green, "Connected to the server! Token verified !");
             ready_button.gameObject.SetActive(true);
         }
+
         if (cmd == "READY OK")
         {
             SetConnectionStatus(Color.blue, "You are ready !");
         }
+
         if (cmd == "GAME RUNNING")
         {
             SetConnectionStatus(Color.red, "Sorry, the game is running !");
@@ -68,11 +70,11 @@ public class NetworkManager : MonoBehaviour
             //load the scene
 
             ide_token = cmd.Split(':')[1];
-            SendData(System.Text.Encoding.Default.GetBytes("Hello from unity"));
 
             //At this point we are on the Game Scene and we can start to load the game
             GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().instance_token = ide_token;
-           // GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().PrepareGame
+            // GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().PrepareGame
+            SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
 
         }
 
@@ -80,13 +82,6 @@ public class NetworkManager : MonoBehaviour
         {
             GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().ProcessOneRound();
             SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
-        }
-
-        //this will have each game info
-        if (cmd == "LOOP")
-        {
-            //then will retreive the map
-            SendData(System.Text.Encoding.Default.GetBytes("LOOP"));
         }
     }
 

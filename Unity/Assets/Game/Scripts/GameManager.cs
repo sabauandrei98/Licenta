@@ -91,8 +91,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            //kinda split the commands and execute each of 
-
+            
             
         }
 
@@ -101,48 +100,6 @@ public class GameManager : MonoBehaviour
         gameObject.GetComponent<DebugManager>().Notify(ref game_map, ref bombs_details);
     }
 
-    public string GetSessionData()
-    {
-        //if the player is dead enter the spectate mode
-        if(IsPlayerDead(instance_token))
-            return "SPECTATE";
-
-        //first store the position of the instance
-        string result = GetPlayerPosition(instance_token).ToString() + " ";
-
-        //then store the other players position
-        for (int i = 0; i < players_list.Count; i++)
-            if (players_list[i].GetComponent<Player>().GetName() != instance_token)
-                result += players_list[i].GetComponent<Player>().transform.position.ToString() + " ";
-
-        //store the map data
-        for (int i = 0; i < map_size; i++)
-            result += game_map[i] + " ";
-
-        //store the bombs position if any
-        for (int i = 0; i < bombs_details.Count; i++)
-            result += bombs_details[i] + " ";
-
-        return result;
-    }
-
-    private bool IsPlayerDead(string token)
-    {
-        for (int i = 0; i < players_list.Count; i++)
-            if (players_list[i].GetComponent<Player>().GetName() == token)
-                if (players_list[i].GetComponent<Player>().IsDead())
-                    return true;
-        return false;
-    }
-
-    private Vector3 GetPlayerPosition(string token)
-    {
-        for (int i = 0; i < players_list.Count; i++)
-            if (players_list[i].GetComponent<Player>().GetName() == token)
-                    return players_list[i].GetComponent<Player>().transform.position;
-
-        return new Vector3();
-    }
 
     private void HandleCommand(string cmd, int player_index)
     {
@@ -278,6 +235,49 @@ public class GameManager : MonoBehaviour
     private bool IsOnMap(int x, int y)
     {
         return x >= 0 && y >= 0 && y < map_size && x < map_size;
+    }
+
+    public string GetSessionData()
+    {
+        //if the player is dead enter the spectate mode
+        if (IsPlayerDead(instance_token))
+            return "SPECTATE";
+
+        //first store the position of the instance
+        string result = GetPlayerPosition(instance_token).ToString() + " ";
+
+        //then store the other players position
+        for (int i = 0; i < players_list.Count; i++)
+            if (players_list[i].GetComponent<Player>().GetName() != instance_token)
+                result += players_list[i].GetComponent<Player>().transform.position.ToString() + " ";
+
+        //store the map data
+        for (int i = 0; i < map_size; i++)
+            result += game_map[i] + " ";
+
+        //store the bombs position if any
+        for (int i = 0; i < bombs_details.Count; i++)
+            result += bombs_details[i] + " ";
+
+        return result;
+    }
+
+    private bool IsPlayerDead(string token)
+    {
+        for (int i = 0; i < players_list.Count; i++)
+            if (players_list[i].GetComponent<Player>().GetName() == token)
+                if (players_list[i].GetComponent<Player>().IsDead())
+                    return true;
+        return false;
+    }
+
+    private Vector3 GetPlayerPosition(string token)
+    {
+        for (int i = 0; i < players_list.Count; i++)
+            if (players_list[i].GetComponent<Player>().GetName() == token)
+                return players_list[i].GetComponent<Player>().transform.position;
+
+        return new Vector3();
     }
 
     private void UpdateRacesOnMap()

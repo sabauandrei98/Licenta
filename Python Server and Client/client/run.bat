@@ -1,0 +1,2 @@
+python Player.py
+pause
