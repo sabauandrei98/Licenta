@@ -30,16 +30,3 @@ while 1:
 	
 		data = client.recv(1024)
 		print (data)
-		
-
-
-		
-
-
-		
-
-
-
-
-    
-

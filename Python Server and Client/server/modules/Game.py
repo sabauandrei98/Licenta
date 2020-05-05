@@ -1,21 +1,25 @@
 import random
+import copy
 from DFS import DFS
+from Helpers import Helpers
 
 class Game:
 
 	@staticmethod
 	def initial_data(tokens_list):
-		self.tokens_list = tokens_list
-		self.players_number = len(self.tokens_list)
-		data = "INITIAL_DATA:"
-		return data
+		game_map_data_rows = Helpers.char_matrix_to_data_rows(Game.generate_map())
+		tokens_data_rows = Helpers.string_list_to_data_rows(tokens_list)
+		
+		print(tokens_data_rows + game_map_data_rows)
+
+		return tokens_data_rows + game_map_data_rows
 
 	@staticmethod
 	def generate_map():
 
 		size_of_map = 16
 		pumpkins = 20
-		obstacles = 32
+		obstacles = 80
 		
 		game_map = [['_' for x in range(size_of_map)] for y in range(size_of_map)] 
 
@@ -38,13 +42,24 @@ class Game:
 							ok = False
 
 				if ok:
+					aux_map = copy.deepcopy(game_map)
 					for i in range(2):
 						for j in range(2):
 							if (obstacles > 0):
 								obstacles -= 1
-								game_map[x_val[i]][y_val[j]] = 'o'
-							else:
-								if (pumpkins > 0):
+								aux_map[x_val[i]][y_val[j]] = 'o'
+
+
+					if DFS.can_fill_all_the_map(aux_map):
+						game_map = copy.deepcopy(aux_map)
+					else:
+						obstacles += 4
+						aux_map = copy.deepcopy(game_map)
+
+
+					for i in range(2):
+						for j in range(2):
+								if (obstacles == 0 and pumpkins > 0):
 									pumpkins -= 1
 									game_map[x_val[i]][y_val[j]] = 'p'
 
@@ -52,19 +67,4 @@ class Game:
 		return game_map
 	
 
-
-
-#test the map in the console (for now)
-game_map = Game.generate_map()
-
-result = ""
-for i in range(16):
-	for j in range(16):
-		result += game_map[i][j] + " "
-	result += "\n"
-
-print(result)
-DFS.can_fill_all_the_map(game_map)
-
-
-	
+Game.initial_data(["a", "b", "c", "d"])
