@@ -39,10 +39,10 @@ The main idea is the same as on Codingame Platform: https://www.codingame.com
 #### Basic description:
 
 The player opens the Unity Platform and chooses a game. 
-Next, the user is able to play offline or online (LAN multiplayer)
+Next, the user is able to play offline or online (LAN multiplayer and Online Multiplayer)
 
-OFFLINE: the player will fight agains a hardcoded bot.
-ONLINE: the player will be guided to a lobby and will be asked to choose an opponent. After that, each user will get a token. Each user will use that token in order to successfully connect to the server from a desired programming language and ide.
+OFFLINE: The player will fight agains a hardcoded bot.
+ONLINE: The player will be guided to a lobby where it will wait for other opponents. After that, each user will get a token. Each user will use that token in order to successfully connect to the server from a desired programming language and ide.
 
 #### More detailed description:
 
