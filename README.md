@@ -2,6 +2,13 @@
 
 CURRENT PROGRESS LOG: 
 
+- Helper functions to easily parse, combine and print the data on the python server
+- Server map generation + DFS check
+- Implemented initial map setup for python server (first data packet containing initial game setup, sent by the server to all unity clients before the game starts)
+- Fixed the code to support different types of objects on the same place on the map
+- Implemented map debugger in game to see easier the entire map while playing
+- Implemented bombs logic in the game + particles effect + detonate script
+- Better Unity level design for the entire scene.
 - Unity Game manager: implemented helper functions and handled some commands from the server + different player types and obstacles spawning
 - Game level generation for the unity game 
 - Model loading for the unity game and some simple set up for the scene
