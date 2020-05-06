@@ -28,7 +28,7 @@ class DFS:
 
 		while len(stack) != 0:
 
-			x,y = stack.pop()
+			x,y = stack.pop(0)
 			if aux_map[x][y] != 'X':
 				aux_map[x][y] = 'X'
 				filled_spaces += 1

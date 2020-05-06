@@ -70,18 +70,19 @@ public class NetworkManager : MonoBehaviour
             //load the scene
 
             ide_token = cmd.Split(':')[1];
-
-            //At this point we are on the Game Scene and we can start to load the game
-            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().instance_token = ide_token;
+            Debug.Log(cmd);
+            //GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().instance_token = ide_token;
             // GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().PrepareGame
-            SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
+            //SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
+            SendData(System.Text.Encoding.Default.GetBytes(cmd));
 
         }
 
         if (cmd.Split(':')[0] == "ROUND")
         {
-            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().ProcessOneRound();
-            SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
+            //GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().ProcessOneRound();
+            //SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
+            SendData(System.Text.Encoding.Default.GetBytes("helloooo"));
         }
     }
 

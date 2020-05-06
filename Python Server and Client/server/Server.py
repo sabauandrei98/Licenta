@@ -100,7 +100,7 @@ class Server:
 					ready_clients += 1
 
 
-			if ready_clients == len(self.clients) and ready_clients > 1:
+			if ready_clients == len(self.clients) and ready_clients > 0:
 				self.all_unity_clients_ready = True
 				print("##### All unity clients ready ! ####\n")
 
@@ -112,7 +112,7 @@ class Server:
 				if client.is_ide_connected:
 					ready_ides += 1
 
-			if ready_ides == len(self.clients) and ready_ides > 1:
+			if ready_ides == len(self.clients) and ready_ides > 0:
 				self.all_ide_clients_ready = True
 
 			time.sleep(1)
@@ -125,9 +125,10 @@ class Server:
 				print("Game Manager Started !\n")
 
 				#send initial data to unity 
-				game_rules = Game(self.tokens)
+				print("Generating initial data..")
 				for client in self.clients:
-					client.unity_write = game_rules.initial_data()
+					client.unity_write = Game.initial_data(self.tokens)
+				print("Initial data generated !")
 
 				while True:
 
@@ -142,12 +143,13 @@ class Server:
 
 					for client in self.clients:
 						if client.unity_read != "" and client.unity_read != ".":
-							#data received, wohoooo
-							#send raw data to ide because there is no need for processing it
+							#send raw data to ide because there is no need for server to processing it
 							client.ide_write = client.unity_read
 							client.unity_read = "."
 						else:
+							#late response from player
 							self.disconnect_one(client)
+
 
 
 					#at this point one flow is done
@@ -155,15 +157,24 @@ class Server:
 					time.sleep(WAIT_FOR_CLIENT_TIME)
 
 					#IDE -> SERVER -> UNITY
+					ide_commands = []
 
+					#collect the data from all ide (map the ide commands)
 					for client in self.clients:
 						if client.ide_read != "" and client.ide_read != ".":
-							#data received, wohoooo
-							#we must process data collected from all the ides
-							client.unity_write = client.ide_read
+							ide_commands.append((client.ide_token, client.ide_read))
 							client.ide_read = "."
 						else:
+							#late response from player
 							self.disconnect_one(client)
+
+					#generate single packet to send to each unity client
+					packet_to_send = Game.pack_ide_data(ide_commands)
+
+					#send packet to each unity client
+					for client in self.clients:
+						client.unity_write = packet_to_send
+						
 
 
 

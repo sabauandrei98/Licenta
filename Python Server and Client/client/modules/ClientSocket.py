@@ -2,6 +2,7 @@ import socket
 import sys
 import time
 import threading
+from Game import Game
 
 RECV_SIZE_BYTES = 512
 
@@ -47,13 +48,13 @@ class ClientSocket:
 		function_name = sys._getframe().f_code.co_name
 		try:
 			while True:
-				self.console_log(function_name + ": Waiting to read from unity...")
+				self.console_log(function_name + ": Waiting to read from server...")
 				self.ide_read = self.client_socket.recv(RECV_SIZE_BYTES)
 
 				if (self.ide_read == ""):
 					raise Exception("Connection with the unity client dropped !")
 
-				self.console_log(function_name + ": Message read from unity ! " + self.ide_read)
+				self.console_log(function_name + ": Message read from server ! Msg:\n" + self.ide_read + "<END>")
 				self.get_player_response(self.ide_read)
 					
 		except socket.timeout:
@@ -71,12 +72,12 @@ class ClientSocket:
 		function_name = sys._getframe().f_code.co_name
 		try:
 			while True:
-				self.console_log(function_name + ": Waiting for server to write to unity ...")
+				self.console_log(function_name + ": Waiting for client to write to server ...")
 				while self.ide_write == "":
 					time.sleep(0.1)
 
 				self.client_socket.send(self.ide_write)
-				self.console_log(function_name + ": Message sent to unity ! " + self.ide_write)
+				self.console_log(function_name + ": Message sent to server ! Msg:\n" + self.ide_write + "<END>")
 
 				self.ide_write = ""
 					
@@ -95,9 +96,10 @@ class ClientSocket:
 			return ""
 
 	def console_log(self, message):
-		print (self.get_ide_address() + " " + message)
+		print ("Connection:" + self.get_ide_address() + " " + message)
 
-	def get_player_response(server_data):
+	def get_player_response(self, server_data):
+		Game.format_data(server_data)
 		self.ide_write = self.solve_function(server_data)
 
 
