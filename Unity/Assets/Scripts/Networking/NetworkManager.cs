@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
-using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -22,6 +20,18 @@ public class NetworkManager : MonoBehaviour
     private string server_cmd = "";
     private string ide_token = "";
 
+
+    void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    public void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "MainMenu")
+            Destroy(this);
+    }
 
     void Start()
     {
@@ -67,14 +77,13 @@ public class NetworkManager : MonoBehaviour
         
         if (cmd.Split(':')[0] == "INITIAL_DATA")
         {
-            //load the scene
+            Application.LoadLevel("Game");
 
-            ide_token = cmd.Split(':')[1];
             Debug.Log(cmd);
-            //GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().instance_token = ide_token;
+            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().instance_token = ide_token;
             // GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().PrepareGame
             //SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
-            SendData(System.Text.Encoding.Default.GetBytes(cmd));
+            SendData(System.Text.Encoding.Default.GetBytes(cmd.Split(':')[1]));
 
         }
 
@@ -82,7 +91,7 @@ public class NetworkManager : MonoBehaviour
         {
             //GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().ProcessOneRound();
             //SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
-            SendData(System.Text.Encoding.Default.GetBytes("helloooo"));
+            SendData(System.Text.Encoding.Default.GetBytes(cmd.Split(':')[1]));
         }
     }
 

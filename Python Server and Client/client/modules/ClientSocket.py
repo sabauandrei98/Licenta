@@ -52,7 +52,7 @@ class ClientSocket:
 				self.ide_read = self.client_socket.recv(RECV_SIZE_BYTES)
 
 				if (self.ide_read == ""):
-					raise Exception("Connection with the unity client dropped !")
+					raise Exception(": Connection with the unity client dropped !")
 
 				self.console_log(function_name + ": Message read from server ! Msg:\n" + self.ide_read + "<END>")
 				self.get_player_response(self.ide_read)
@@ -62,7 +62,7 @@ class ClientSocket:
 		except socket.error:
 			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
 		except Exception as e:
-			print ("Exception :" + str(e))
+			self.console_log(function_name + str(e))
 		finally:
 			self.client_socket.shutdown(socket.SHUT_RDWR)
 			self.client_socket.close()
@@ -86,13 +86,16 @@ class ClientSocket:
 		except socket.error:
 			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
 		except Exception as e:
-			print ("Exception :" + str(e))
+			self.console_log(function_name + str(e))
 		finally:
 			self.client_socket.close()
 
 	def get_ide_address(self):
-			if(self.client_socket != None):
-				return str(self.client_socket.getpeername())
+			try:
+				if(self.client_socket != None):
+					return str(self.client_socket.getpeername())
+			except:
+				pass
 			return ""
 
 	def console_log(self, message):

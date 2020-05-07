@@ -23,28 +23,30 @@ public class GameManager : MonoBehaviour
     private int bomb_range = 2;
     private int bomb_detonate_time = 8;
     private float time_between_rounds = 0.5f;
-    private bool once = false;
     private bool game_over = false;
     
-
+    /*
     //this simulates data flow
     IEnumerator SimulateGame(float time)
     {
         yield return new WaitForSeconds(time);
 
-        ProcessOneRound();
+        //ProcessOneRound();
         StartCoroutine(SimulateGame(time_between_rounds));
     }
 
     //this function will be removed
     void Start()
     {
+        
         string[] map = MapGenerator.GenerateMap(16, 36, 60);
         string[] tokens = new string[2] { "aa", "bb"};
         PrepareGame(map, tokens);
 
         StartCoroutine(SimulateGame(time_between_rounds));
+        
     }
+    */
 
 
     public void PrepareGame(string[] map, string[] tokens)
@@ -54,17 +56,38 @@ public class GameManager : MonoBehaviour
         UpdateRacesOnMap();
     }
 
+
+    private struct Command
+    {
+        public string token;
+        public string command;
+    }
+    private List<Command> SplitCommands(string server_data)
+    {
+        List<Command> cmds = new List<Command>();
+
+        string[] lines = server_data.Split('\n');
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            Command cmd = new Command();
+            cmd.token   = lines[i].Split('=')[0];
+            cmd.command = lines[i].Split('=')[1]; 
+        }
+
+        return cmds;
+    }
    
-    //some cmd param here
-    public void ProcessOneRound()
+
+    public void ProcessOneRound(string server_data)
     {
         if (game_over)
             return;
 
-        //first execute bombs
+        List<Command> cmds = SplitCommands(server_data);
+
         ExecuteBombs();
 
-        //check if end of the game
         if (EndOfTheGame())
         {
             Debug.Log("GAME OVER !");
@@ -75,24 +98,18 @@ public class GameManager : MonoBehaviour
         if (single_player)
         {
             string ai_cmd = players_list[1].GetComponent<AIPlayer>().MoveAI(players_list[1].transform.position, ref game_map, bombs_details);
-            //Debug.Log("AI: " + ai_cmd);
 
-
-            string player_cmd = "MOVE 0 1";
-            if (!once)
-            {
-                player_cmd = "BOMB";
-                once = true;
-            }
-            //Debug.Log("PLAYER: " + player_cmd);
-
-            HandleCommand(player_cmd, 0);
+            HandleCommand(cmds[0].command, 0);
             HandleCommand(ai_cmd, 1);
         }
         else
         {
-            
-            
+            for(int cmd_ind = 0; cmd_ind < cmds.Count; cmd_ind++)
+                for(int player_ind = 0; player_ind < players_list.Count; player_ind++)
+                {
+                    if (players_list[player_ind].GetComponent<Player>().name == cmds[cmd_ind].token)
+                        HandleCommand(cmds[cmd_ind].command, player_ind);
+                }
         }
 
         RemovePumpkinsIfCollected();
@@ -103,7 +120,10 @@ public class GameManager : MonoBehaviour
 
     private void HandleCommand(string cmd, int player_index)
     {
-        //move
+
+        if (players_list[player_index].GetComponent<Player>().IsDead())
+            return;
+
         if(cmd.Split(' ')[0] == "MOVE")
         {
             int x = int.Parse(cmd.Split(' ')[1]);
@@ -119,7 +139,6 @@ public class GameManager : MonoBehaviour
                 
         }
 
-        //place bomb
         if (cmd.Split(' ')[0] == "BOMB")
         {
             bombs_list.Add(Instantiate(ResourceLoader.LoadBomb(), players_list[player_index].transform.position, Quaternion.identity) as GameObject);

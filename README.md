@@ -2,6 +2,11 @@
 
 CURRENT PROGRESS LOG: 
 
+- Fixed some disconnection issues on the python server + handeled a server crash when players disconnect in late game
+- Process commands from the server on the Unity client
+- Added a function to safely close the python server when necessary
+- Improved messages to be more user friendly on python server + client
+- Fixed a bug that didn't allow clients to connect on LAN 
 - Helper functions to easily parse, combine and print the data on the python server
 - Server map generation + DFS check
 - Implemented initial map setup for python server (first data packet containing initial game setup, sent by the server to all unity clients before the game starts)

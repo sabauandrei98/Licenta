@@ -21,7 +21,7 @@ class Game:
 		packet = "ROUND:\n"
 
 		for token, cmd in ide_commands_list:
-			packet += token + ":" + cmd + '\n'
+			packet += token + "=" + cmd + '\n'
 		
 		print (packet)
 

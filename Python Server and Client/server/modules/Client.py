@@ -53,7 +53,7 @@ class Client:
 					self.unity_read = client_socket.recv(self.RECV_SIZE_BYTES)
 
 					if (self.unity_read == ""):
-						raise Exception("Connection with the unity client dropped !")
+						raise Exception(": Connection with the unity client dropped !")
 
 					self.console_log(function_name + ": Message read from unity ! " + self.unity_read)
 
@@ -62,7 +62,7 @@ class Client:
 					self.ide_read = client_socket.recv(self.RECV_SIZE_BYTES)
 
 					if (self.ide_read == ""):
-						raise Exception("Connection with the ide client dropped !")
+						raise Exception(": Connection with the ide client dropped !")
 
 					self.console_log(function_name + ": Message read from ide! " + self.ide_read)
 					
@@ -75,7 +75,7 @@ class Client:
 			self.is_connected = False
 
 		except Exception as e:
-			print ("Exception :" + str(e))
+			self.console_log(function_name + str(e))
 			self.is_connected = False
 
 
@@ -112,11 +112,12 @@ class Client:
 			self.is_connected = False
 
 		except Exception as e:
-			print ("Exception :" + str(e))
+			self.console_log(function_name + str(e))
 			self.is_connected = False
 
 
 	def has_valid_token(self, client_socket, token):
+		function_name = sys._getframe().f_code.co_name
 		try:
 			#check the token from the client 
 			#to verify if it is authorized to join this server
@@ -124,39 +125,45 @@ class Client:
 			client_token = client_socket.recv(self.RECV_SIZE_BYTES)
 
 			if (client_token == ""):
-				raise Exception("Client disconnected !")
+				raise Exception(": Client disconnected !")
 
 			if client_token == token:
 				client_socket.send("TOKEN OK")
 				client_socket.settimeout(self.RECV_TIMEOUT)
 				return True
 			else:
-				raise Exception ("Wrong token from the client !")
+				raise Exception (": Wrong token from the client ! Client has been disconnected! ")
 				
 		except socket.timeout:
-			print("This client has been disconnected due to timeout !")
+			self.console_log(function_name + ": This client has been disconnected due to timeout !")
 			self.is_connected = False
 
 		except socket.error:
-			print("Oops there was an socket error and connection was closed !")
+			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
 			self.is_connected = False
 
 		except Exception as exception:
-			print (str(exception))
+			self.console_log(function_name + str(exception))
 			self.is_connected = False
 
 		return False
 
 
 	def get_unity_address(self):
-		if (self.unity_socket != None):
-			return str(self.unity_socket.getpeername())
+		try:
+			if (self.unity_socket != None):
+				return str(self.unity_socket.getpeername())
+		except:
+			pass
 		return ""
 
 	def get_ide_address(self):
-		if(self.ide_socket != None):
-			return str(self.ide_socket.getpeername())
+		try:
+			if(self.ide_socket != None):
+				return str(self.ide_socket.getpeername())
+		except:
+			pass
 		return ""
 
 	def console_log(self, message):
-		print (self.get_unity_address() + " " + self.get_ide_address() + " " + message)
+		print ("Unity:<" + self.get_unity_address() + "> Ide: <" + self.get_ide_address() + "> " + message)

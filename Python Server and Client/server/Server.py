@@ -1,11 +1,12 @@
 import socket 
 import threading
 import time
+import os
 from modules.Client import Client
 from modules.Game import Game
 
 #connection
-DEFAULT_HOST = "localhost"
+DEFAULT_HOST = ''
 DEFAULT_PORT = 50000
 DEFAULT_LISTEN = 5
 RECV_SIZE_BYTES = 512
@@ -23,6 +24,7 @@ class Server:
 		self.clients = []
 		self.tokens = []
 
+
 	def create_server_socket(self):
 		try:
 			self.s_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,6 +34,7 @@ class Server:
 			print ("SERVER ON ! " + self.host + ":" + str(self.port))
 		except Exception as error:
 			print ("Could not create server socket: " + str(error))
+
 
 	def new_clients_manager(self):
 		print ("New Clients Manager Started !\n")
@@ -80,9 +83,7 @@ class Server:
 		except Exception as e:
 			print ("Exception :" + str(e))
 		finally:
-			self.disconnect_all()
-			self.s_socket.close()
-			print("Server socket was closed !")
+			self.close_the_server()
 
 
 	def lobby_manager(self):
@@ -99,7 +100,6 @@ class Server:
 				else:
 					ready_clients += 1
 
-
 			if ready_clients == len(self.clients) and ready_clients > 0:
 				self.all_unity_clients_ready = True
 				print("##### All unity clients ready ! ####\n")
@@ -115,7 +115,12 @@ class Server:
 			if ready_ides == len(self.clients) and ready_ides > 0:
 				self.all_ide_clients_ready = True
 
+			#if no player left, close the server
+			if len(self.clients) == 0:
+				self.close_the_server()
+
 			time.sleep(1)
+
 
 	def game_manager(self):
 
@@ -137,6 +142,10 @@ class Server:
 					#wait for unity response
 					time.sleep(WAIT_FOR_CLIENT_TIME)
 
+					#if no player left, close the server
+					if len(self.clients) == 0:
+						self.close_the_server()
+
 					#UNITY -> SERVER -> IDE
 					#now check if all unity clients sent back some info
 					#disconnect if no data received from client
@@ -149,12 +158,18 @@ class Server:
 						else:
 							#late response from player
 							self.disconnect_one(client)
-
+							#if no player left, close the server
+							if len(self.clients) == 0:
+								self.close_the_server()
 
 
 					#at this point one flow is done
 					#wait for ide response
 					time.sleep(WAIT_FOR_CLIENT_TIME)
+
+					#if no player left, close the server
+					if len(self.clients) == 0:
+						self.close_the_server()
 
 					#IDE -> SERVER -> UNITY
 					ide_commands = []
@@ -167,6 +182,9 @@ class Server:
 						else:
 							#late response from player
 							self.disconnect_one(client)
+							#if no player left, close the server
+							if len(self.clients) == 0:
+								self.close_the_server()
 
 					#generate single packet to send to each unity client
 					packet_to_send = Game.pack_ide_data(ide_commands)
@@ -175,8 +193,6 @@ class Server:
 					for client in self.clients:
 						client.unity_write = packet_to_send
 						
-
-
 
 	def link_tokens_manager(self):
 
@@ -198,6 +214,7 @@ class Server:
 				return		
 
 			time.sleep(1)
+
 
 	def disconnect_one(self, client):
 
@@ -231,18 +248,29 @@ class Server:
 			self.disconnect_one(client)
 		print ("All clients disconnected !")
 
+
 	def disconnected_manager(self):
 		print ("Disconnected Manager Started ! \n")
 		while True:
 			for client in self.clients:
 				if client.is_connected == False:
 					self.disconnect_one(client)				
-			time.sleep(0.5)
+			time.sleep(1)
+
+
+	def close_the_server(self):
+		if len(self.clients) != 0:
+			self.disconnect_all()
+		try:
+			self.s_socket.close()
+		except:
+			print ("Error while closing the server !")	
+		print("Server socket closed !")
+		os._exit(1)
 
 
 	def run(self):
 		self.create_server_socket()
-		time.sleep(0.5)
 
 		#this thread will check for new players
 		new_clients_manager_th = threading.Thread(target = self.new_clients_manager, args = ())
@@ -265,9 +293,7 @@ class Server:
 		lobby_manager_th.start()
 		link_tokens_manager_th.start()
 		game_manager_th.start()
-
-
-
+		
 
 s = Server()
 s.run()
