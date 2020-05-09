@@ -2,6 +2,7 @@
 
 CURRENT PROGRESS LOG: 
 
+- FIST GAME PLAYED WITH COMPLETE FLOW 1 PLAYER VS 1 BOT
 - Changed the Game Manager to allow more than one bot when singleplayer
 - Added parsing function for the python client and spectate mode
 - Fixed the parsing method (Errors due to the '\n')
