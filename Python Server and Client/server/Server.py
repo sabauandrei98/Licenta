@@ -202,7 +202,7 @@ class Server:
 				print("Link Tokens Manager Started !\n")
 
 				#generate some fancy tokens
-				self.tokens = ["token1", "token2", "token3"]
+				self.tokens = ["token1"]
 
 				print("Tokens generated !\n")
 			

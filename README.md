@@ -2,6 +2,9 @@
 
 CURRENT PROGRESS LOG: 
 
+- Changed the Game Manager to allow more than one bot when singleplayer
+- Added parsing function for the python client and spectate mode
+- Fixed the parsing method (Errors due to the '\n')
 - Fixed some disconnection issues on the python server + handeled a server crash when players disconnect in late game
 - Process commands from the server on the Unity client
 - Added a function to safely close the python server when necessary

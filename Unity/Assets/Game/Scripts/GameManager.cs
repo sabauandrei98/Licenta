@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -48,10 +49,67 @@ public class GameManager : MonoBehaviour
     }
     */
 
-
-    public void PrepareGame(string[] map, string[] tokens)
+    private struct InitialData
     {
-        LoadMapObjects(map);
+        public string[] tokens;
+        public string[] map;
+    }
+
+    private string[] ServerDataToRows(string server_data)
+    {
+        string[] rows = server_data.Split(
+                new[] { "\r\n", "\r", "\n" },
+                StringSplitOptions.None
+            );
+
+        int lines = 0;
+        for (int i = 0; i < rows.Length; i++)
+            if (rows[i].Length > 1)
+                lines++;
+
+        string[] result = new string[lines];
+
+        int cnt = 0;
+        for (int i = 0; i < rows.Length; i++)
+            if (rows[i].Length > 1)
+            {
+                result[cnt] = rows[i];
+                cnt++;
+            }
+
+        return result;
+    }
+
+    private InitialData SplitInitialData(string server_data)
+    {
+        InitialData data = new InitialData();
+        string[] data_rows = ServerDataToRows(server_data);
+
+        int tokens = 0;
+        for (int i = 0; i < data_rows.Length; i++)
+            if (data_rows[i].Length < 16)
+                tokens++;
+
+        //Debug.Log("TOKENsize:" + tokens.ToString());
+        data.tokens = new string[tokens];
+        data.map = new string[16];
+
+        for (int i = 0; i < data_rows.Length; i++)
+            if (i < tokens)
+            {
+                data.tokens[i] = data_rows[i];
+            }
+            else
+                data.map[i - tokens] = data_rows[i];
+
+        return data;
+    }
+
+    public void PrepareGame(string server_data)
+    {
+        InitialData data = SplitInitialData(server_data);
+        string[] tokens = new string[4] { "token1", "AI", "AI", "AI"};
+        LoadMapObjects(data.map);
         LoadPlayers(tokens);
         UpdateRacesOnMap();
     }
@@ -65,14 +123,14 @@ public class GameManager : MonoBehaviour
     private List<Command> SplitCommands(string server_data)
     {
         List<Command> cmds = new List<Command>();
-
-        string[] lines = server_data.Split('\n');
+        string[] lines = ServerDataToRows(server_data);
 
         for (int i = 0; i < lines.Length; i++)
         {
             Command cmd = new Command();
             cmd.token   = lines[i].Split('=')[0];
-            cmd.command = lines[i].Split('=')[1]; 
+            cmd.command = lines[i].Split('=')[1];
+            cmds.Add(cmd);
         }
 
         return cmds;
@@ -85,7 +143,6 @@ public class GameManager : MonoBehaviour
             return;
 
         List<Command> cmds = SplitCommands(server_data);
-
         ExecuteBombs();
 
         if (EndOfTheGame())
@@ -95,21 +152,26 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (single_player)
-        {
-            string ai_cmd = players_list[1].GetComponent<AIPlayer>().MoveAI(players_list[1].transform.position, ref game_map, bombs_details);
-
-            HandleCommand(cmds[0].command, 0);
-            HandleCommand(ai_cmd, 1);
-        }
-        else
-        {
-            for(int cmd_ind = 0; cmd_ind < cmds.Count; cmd_ind++)
-                for(int player_ind = 0; player_ind < players_list.Count; player_ind++)
+        //execute cmds for players
+        for(int cmd_ind = 0; cmd_ind < cmds.Count; cmd_ind++)
+            for(int player_ind = 0; player_ind < players_list.Count; player_ind++)
+            {
+                if (players_list[player_ind].GetComponent<Player>().GetName() == cmds[cmd_ind].token)
                 {
-                    if (players_list[player_ind].GetComponent<Player>().name == cmds[cmd_ind].token)
-                        HandleCommand(cmds[cmd_ind].command, player_ind);
+                    Debug.Log("Command handled by player");
+                    HandleCommand(cmds[cmd_ind].command, player_ind);
                 }
+            }
+
+        //execute cmds for bots (if any)
+        for (int AI_ind = 0; AI_ind < players_list.Count; AI_ind++)
+        {
+            if (players_list[AI_ind].GetComponent<Player>().GetName() == "AI")
+            {
+                string ai_cmd = players_list[AI_ind].GetComponent<AIPlayer>().MoveAI(players_list[AI_ind].transform.position, ref game_map, bombs_details);
+                Debug.Log("Command handled by AI");
+                HandleCommand(ai_cmd, AI_ind);
+            }
         }
 
         RemovePumpkinsIfCollected();
@@ -263,20 +325,31 @@ public class GameManager : MonoBehaviour
             return "SPECTATE";
 
         //first store the position of the instance
-        string result = GetPlayerPosition(instance_token).ToString() + " ";
+        Vector3 current_player_pos = GetPlayerPosition(instance_token);
+        string result = current_player_pos.x.ToString() + " " + current_player_pos.z.ToString() + '\n';
 
         //then store the other players position
+        //Debug.Log("GetSession:" + players_list.Count.ToString());
         for (int i = 0; i < players_list.Count; i++)
             if (players_list[i].GetComponent<Player>().GetName() != instance_token)
-                result += players_list[i].GetComponent<Player>().transform.position.ToString() + " ";
+            {
+                
+                Vector3 other_player_pos = players_list[i].GetComponent<Player>().transform.position;
+                //Debug.Log("GetSessionADD:" + other_player_pos.ToString());
+                //Debug.Log("GetSessionToken:" + players_list[i].GetComponent<Player>().GetName().ToString());
+                result += other_player_pos.x.ToString() + " " + other_player_pos.z.ToString() + '\n';
+            }
 
         //store the map data
         for (int i = 0; i < map_size; i++)
-            result += game_map[i] + " ";
+            result += game_map[i] + '\n';
 
         //store the bombs position if any
         for (int i = 0; i < bombs_details.Count; i++)
-            result += bombs_details[i] + " ";
+        {
+            Vector3 bomb_pos = bombs_details[i];
+            result += bomb_pos.x.ToString() + " " + bomb_pos.z.ToString() + '\n';
+        }
 
         return result;
     }
@@ -328,31 +401,24 @@ public class GameManager : MonoBehaviour
         int[] xPos = new int[4] { 0, map_size - 1, 0, map_size - 1 };
         int[] yPos = new int[4] { 0, map_size - 1, map_size - 1, 0 };
 
-        int AI = 0;
-        if (single_player)
-            AI = 1;
-
-        for (int i = 0; i < tokens.Length - AI; i++)
+        for (int i = 0; i < tokens.Length; i++)
         {
             players_list.Add(Instantiate(ResourceLoader.LoadPlayer(xPos[i], yPos[i], map_size),
                                                        new Vector3(xPos[i], 0.1f, yPos[i]), 
                                                        Quaternion.identity) as GameObject);
 
-            players_list[i].AddComponent<Player>();
-            players_list[i].GetComponent<Player>().SetName(tokens[i]);
-            players_list[i].GetComponent<Player>().SetRace(races[i]);
-            
-        }
-
-        if (AI == 1)
-        {
-            players_list.Add(Instantiate(ResourceLoader.LoadPlayer(xPos[tokens.Length - AI], yPos[tokens.Length - AI], map_size),
-                                                       new Vector3(xPos[tokens.Length - AI], 0, yPos[tokens.Length - AI]),
-                                                       Quaternion.identity) as GameObject);
-
-            players_list[tokens.Length - AI].AddComponent<AIPlayer>();
-            players_list[tokens.Length - AI].GetComponent<AIPlayer>().SetName("AI");
-            players_list[tokens.Length - AI].GetComponent<Player>().SetRace(races[AI]);
+            if (tokens[i] == "AI")
+            {
+                players_list[i].AddComponent<AIPlayer>();
+                players_list[i].GetComponent<AIPlayer>().SetName(tokens[i]);
+                players_list[i].GetComponent<AIPlayer>().SetRace(races[i]);
+            }
+            else
+            {
+                players_list[i].AddComponent<Player>();
+                players_list[i].GetComponent<Player>().SetName(tokens[i]);
+                players_list[i].GetComponent<Player>().SetRace(races[i]);
+            }
         }
     }
 

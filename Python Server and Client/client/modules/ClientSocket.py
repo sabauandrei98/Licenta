@@ -102,7 +102,10 @@ class ClientSocket:
 		print ("Connection:" + self.get_ide_address() + " " + message)
 
 	def get_player_response(self, server_data):
-		Game.format_data(server_data)
-		self.ide_write = self.solve_function(server_data)
+		if server_data != "SPECTATE":
+			players_position, game_map, bombs_position = Game.format_data(server_data)
+			self.ide_write = self.solve_function(players_position, game_map, bombs_position)
+		else:
+			print("You are spectating !")
 
 

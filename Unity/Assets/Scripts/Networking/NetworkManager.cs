@@ -3,6 +3,7 @@ using System;
 using System.Net.Sockets;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -33,12 +34,6 @@ public class NetworkManager : MonoBehaviour
             Destroy(this);
     }
 
-    void Start()
-    {
-        connect_to_server_button.onClick.AddListener(delegate { ConnectToServerButton(); });
-        ready_button.onClick.AddListener(delegate { ReadyButton(); });
-    }
-
     void Update()
     {
         if (server_cmd != "")
@@ -49,9 +44,15 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        connect_to_server_button.onClick.AddListener(delegate { ConnectToServerButton(); });
+        ready_button.onClick.AddListener(delegate { ReadyButton(); });
+    }
+
     void CommandHandler(string cmd)
     {
-        if(cmd == "TOKEN OK")
+        if (cmd == "TOKEN OK")
         {
             SetConnectionStatus(Color.green, "Connected to the server! Token verified !");
             ready_button.gameObject.SetActive(true);
@@ -71,28 +72,32 @@ public class NetworkManager : MonoBehaviour
         if (cmd.Split(':')[0] == "IDE_TOKEN")
         {
             ide_token = cmd.Split(':')[1];
-            SetConnectionStatus(Color.white, "This is your ide token: " + ide_token + 
+            SetConnectionStatus(Color.white, "This is your ide token: " + ide_token +
                 "\n Put it in your code to connect to the server from ide");
         }
-        
+
         if (cmd.Split(':')[0] == "INITIAL_DATA")
         {
-            Application.LoadLevel("Game");
-
-            Debug.Log(cmd);
-            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().instance_token = ide_token;
-            // GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().PrepareGame
-            //SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
-            SendData(System.Text.Encoding.Default.GetBytes(cmd.Split(':')[1]));
-
+            StartCoroutine(HandleInitialData(cmd.Split(':')[1]));
         }
 
         if (cmd.Split(':')[0] == "ROUND")
         {
-            //GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().ProcessOneRound();
-            //SendData(System.Text.Encoding.Default.GetBytes(GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().GetSessionData()));
-            SendData(System.Text.Encoding.Default.GetBytes(cmd.Split(':')[1]));
+            GameManager game_manager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+            game_manager.ProcessOneRound(cmd.Split(':')[1]);
+            SendData(System.Text.Encoding.Default.GetBytes(game_manager.GetSessionData()));
         }
+    }
+
+    private IEnumerator HandleInitialData(string data)
+    {
+        SceneManager.LoadScene("Game");
+        yield return new WaitForSeconds(0.5f);
+
+        GameManager game_manager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+        game_manager.instance_token = ide_token;
+        game_manager.PrepareGame(data);
+        SendData(System.Text.Encoding.Default.GetBytes(game_manager.GetSessionData()));
     }
 
     public void ConnectToServerButton()
