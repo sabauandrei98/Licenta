@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Threading;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -15,11 +16,11 @@ public class NetworkManager : MonoBehaviour
     public InputField ip_input_field;
     public InputField port_input_field;
 
-    private Socket _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-    private byte[] _recieveBuffer = new byte[512];
+    private Socket client_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+    private byte[] receive_buffer = new byte[512];
 
     private const string UNITY_TOKEN = "439b3a25b555b3bc8667a09a036ae70c";
-    private bool connected = false;
+    private int connected = 0;
     private string server_cmd = "";
     private string ide_token = "";
 
@@ -41,17 +42,24 @@ public class NetworkManager : MonoBehaviour
                 Disconnect();
                 Destroy(go);
             }
-
         }
     }
 
     void Update()
     {
-        if (server_cmd != "")
+        if (connected == 1)
         {
-            Debug.Log("Recv: <" + server_cmd + ">");
-            CommandHandler(server_cmd);
-            server_cmd = "";
+            if (server_cmd != "")
+            {
+                Debug.Log("Recv: <" + server_cmd + ">");
+                CommandHandler(server_cmd);
+                server_cmd = "";
+            }
+        }
+        else
+            if (connected == -1)
+        {
+            SceneManager.LoadScene("MainMenu");
         }
     }
 
@@ -111,6 +119,21 @@ public class NetworkManager : MonoBehaviour
         SendData(System.Text.Encoding.Default.GetBytes(game_manager.GetSessionData()));
     }
 
+    private void IsSocketConnected(Socket s)
+    {
+        while (connected == 1)
+        {
+            bool part1 = s.Poll(1000, SelectMode.SelectRead);
+            bool part2 = (s.Available == 0);
+            if (part1 && part2)
+            {
+                Disconnect();
+            }
+
+            Thread.Sleep(1000);
+        }
+    }
+
     public void ConnectToServerButton()
     {
         SetupConnection();
@@ -131,12 +154,15 @@ public class NetworkManager : MonoBehaviour
                 SetConnectionStatus(Color.red, "Empty fields !");
                 return;
             }
-           
-            _clientSocket.Connect(ip_text.text, int.Parse(port_text.text));
+
+            client_socket.Connect(ip_text.text, int.Parse(port_text.text));
             ip_input_field.interactable = false;
             port_input_field.interactable = false;
             connect_to_server_button.interactable = false;
-            connected = true;
+            connected = 1;
+
+            Thread is_connected = new Thread(() => IsSocketConnected(client_socket));
+            is_connected.Start();
         }
         catch (SocketException ex)
         {
@@ -148,26 +174,26 @@ public class NetworkManager : MonoBehaviour
             return;
         }
 
-       _clientSocket.BeginReceive(_recieveBuffer, 0, _recieveBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
+        client_socket.BeginReceive(receive_buffer, 0, receive_buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
     }
 
     private void ReceiveCallback(IAsyncResult AR)
     {
         //Check how much bytes are recieved and call EndRecieve to finalize handshake
-        int recieved = _clientSocket.EndReceive(AR);
+        int recieved = client_socket.EndReceive(AR);
         
         if (recieved <= 0)
             return;
 
         //Copy the recieved data into new buffer , to avoid null bytes
         byte[] recData = new byte[recieved];
-        Buffer.BlockCopy(_recieveBuffer, 0, recData, 0, recieved);
+        Buffer.BlockCopy(receive_buffer, 0, recData, 0, recieved);
 
         //Process data here the way you want , all your bytes will be stored in recData
         server_cmd = System.Text.Encoding.Default.GetString(recData);
 
         //Start receiving again
-        _clientSocket.BeginReceive(_recieveBuffer, 0, _recieveBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
+        client_socket.BeginReceive(receive_buffer, 0, receive_buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
     }
 
     private void SendData(byte[] data)
@@ -176,7 +202,7 @@ public class NetworkManager : MonoBehaviour
         {
             SocketAsyncEventArgs socketAsyncData = new SocketAsyncEventArgs();
             socketAsyncData.SetBuffer(data, 0, data.Length);
-            _clientSocket.SendAsync(socketAsyncData);
+            client_socket.SendAsync(socketAsyncData);
         }
         catch
         {
@@ -195,18 +221,18 @@ public class NetworkManager : MonoBehaviour
     {
         try
         {
-            if (connected)
+            if (connected == 1)
             {
-                connected = false;
-                _clientSocket.Shutdown(SocketShutdown.Both);
+                connected = -1;
+                client_socket.Shutdown(SocketShutdown.Both);
 
-                _clientSocket.Disconnect(true);
-                if (_clientSocket.Connected)
+                client_socket.Disconnect(true);
+                if (client_socket.Connected)
                     Debug.Log("We're still connnected");
                 else
                     Debug.Log("We're disconnected");
 
-                _clientSocket.Close();
+                client_socket.Close();
             }
         }
         catch
