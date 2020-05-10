@@ -31,62 +31,6 @@ public class GameManager : MonoBehaviour
     private int bomb_detonate_time = 5;
 
 
-    private struct InitialData
-    {
-        public string[] tokens;
-        public string[] map;
-    }
-
-    private string[] ServerDataToRows(string server_data)
-    {
-        string[] rows = server_data.Split(
-                new[] { "\r\n", "\r", "\n" },
-                StringSplitOptions.None
-            );
-
-        int lines = 0;
-        for (int i = 0; i < rows.Length; i++)
-            if (rows[i].Length > 1)
-                lines++;
-
-        string[] result = new string[lines];
-
-        int cnt = 0;
-        for (int i = 0; i < rows.Length; i++)
-            if (rows[i].Length > 1)
-            {
-                result[cnt] = rows[i];
-                cnt++;
-            }
-
-        return result;
-    }
-
-    private InitialData SplitInitialData(string server_data)
-    {
-        InitialData data = new InitialData();
-        string[] data_rows = ServerDataToRows(server_data);
-
-        int tokens = 0;
-        for (int i = 0; i < data_rows.Length; i++)
-            if (data_rows[i].Length < map_size)
-                tokens++;
-
-        //Debug.Log("TOKENsize:" + tokens.ToString());
-        data.tokens = new string[tokens];
-        data.map = new string[map_size];
-
-        for (int i = 0; i < data_rows.Length; i++)
-            if (i < tokens)
-            {
-                data.tokens[i] = data_rows[i];
-            }
-            else
-                data.map[i - tokens] = data_rows[i];
-
-        return data;
-    }
-
     public void PrepareGame(string server_data, bool single_player)
     {
         this.single_player = single_player;
@@ -105,7 +49,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            InitialData data = SplitInitialData(server_data);
+            DataParsing.InitialData data = DataParsing.SplitInitialData(server_data);
             LoadMapObjects(data.map);
             LoadPlayers(data.tokens);
             UpdateRacesOnMap();
@@ -113,43 +57,12 @@ public class GameManager : MonoBehaviour
     }
 
 
-    private struct Command
-    {
-        public string token;
-        public string command;
-    }
-    private List<Command> SplitCommands(string server_data)
-    {
-        List<Command> cmds = new List<Command>();
-
-        if (single_player == true)
-        {
-            Command cmd = new Command();
-            cmd.token = "singleplayer";
-            cmd.command = server_data;
-            cmds.Add(cmd);
-            return cmds;
-        }
-                
-        string[] lines = ServerDataToRows(server_data);
-
-        for (int i = 0; i < lines.Length; i++)
-        {
-            Command cmd = new Command();
-            cmd.token   = lines[i].Split('=')[0];
-            cmd.command = lines[i].Split('=')[1];
-            cmds.Add(cmd);
-        }
-        return cmds;
-    }
-   
-
     public void ProcessOneRound(string server_data)
     {
         if (game_over)
             return;
 
-        List<Command> cmds = SplitCommands(server_data);
+        List<DataParsing.Command> cmds = DataParsing.SplitCommands(server_data, single_player);
         ExecuteBombs();
 
         if (EndOfTheGame())
@@ -165,7 +78,6 @@ public class GameManager : MonoBehaviour
             {
                 if (players_list[player_ind].GetComponent<Player>().GetName() == cmds[cmd_ind].token)
                 {
-                    Debug.Log("Command handled by player");
                     HandleCommand(cmds[cmd_ind].command, player_ind);
                 }
             }
@@ -176,7 +88,6 @@ public class GameManager : MonoBehaviour
             if (players_list[AI_ind].GetComponent<Player>().GetName() == "AI")
             {
                 string ai_cmd = players_list[AI_ind].GetComponent<AIPlayer>().MoveAI(players_list[AI_ind].transform.position, ref game_map, bombs_details);
-                Debug.Log("Command handled by AI");
                 HandleCommand(ai_cmd, AI_ind);
             }
         }
@@ -185,7 +96,6 @@ public class GameManager : MonoBehaviour
         UpdateRacesOnMap();
         gameObject.GetComponent<DebugManager>().Notify(ref game_map, ref bombs_details);
     }
-
 
     private void HandleCommand(string cmd, int player_index)
     {
@@ -335,14 +245,10 @@ public class GameManager : MonoBehaviour
         string result = current_player_pos.x.ToString() + " " + current_player_pos.z.ToString() + '\n';
 
         //then store the other players position
-        //Debug.Log("GetSession:" + players_list.Count.ToString());
         for (int i = 0; i < players_list.Count; i++)
             if (players_list[i].GetComponent<Player>().GetName() != instance_token)
             {
-                
                 Vector3 other_player_pos = players_list[i].GetComponent<Player>().transform.position;
-                //Debug.Log("GetSessionADD:" + other_player_pos.ToString());
-                //Debug.Log("GetSessionToken:" + players_list[i].GetComponent<Player>().GetName().ToString());
                 result += other_player_pos.x.ToString() + " " + other_player_pos.z.ToString() + '\n';
             }
 
@@ -444,7 +350,7 @@ public class GameManager : MonoBehaviour
                 if (game_map[i][j] == 'o')
                 {
                     map_obstacles_number++;
-                    //do not store obstacles because they will be not used later
+                    //do not store obstacles because they will not be used later
                     Instantiate(ResourceLoader.LoadObstacle(-1), new Vector3(i, 0.1f, j), Quaternion.identity);
                 }
             }
