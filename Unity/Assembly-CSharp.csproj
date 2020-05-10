@@ -64,7 +64,6 @@
      <Compile Include="Assets\Game\Scripts\Player\Player.cs" />
      <Compile Include="Assets\Scripts\Networking\NetworkManager.cs" />
      <Compile Include="Assets\Scripts\Scenes\SceneLoader.cs" />
-     <Compile Include="Assets\Scripts\SinglePlayer\SinglePlayerManager.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>C:/Users/andreis4/Desktop/Licenta/Unity/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>

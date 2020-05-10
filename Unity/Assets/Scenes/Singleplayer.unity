@@ -919,7 +919,7 @@ GameObject:
   - component: {fileID: 1114445056}
   - component: {fileID: 1114445055}
   m_Layer: 0
-  m_Name: SinglePlayerManager
+  m_Name: NetworkManager
   m_TagString: SinglePlayerManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -934,10 +934,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1114445054}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9659a59753f4eb444993790815aec6fe, type: 3}
+  m_Script: {fileID: 11500000, guid: 9c9b655f55881b64a9de1a4b3fecc66c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  connection_status: {fileID: 1758356870}
 --- !u!4 &1114445056
 Transform:
   m_ObjectHideFlags: 0
@@ -1274,7 +1273,7 @@ GameObject:
   - component: {fileID: 1758356870}
   m_Layer: 5
   m_Name: ConnectionStatus_Text
-  m_TagString: Untagged
+  m_TagString: ConnectionStatus_Text
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1295,7 +1294,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.33437502, y: 0.1288889}
   m_AnchorMax: {x: 0.66562515, y: 0.1787761}
-  m_AnchoredPosition: {x: -0.4000244, y: -0.09698486}
+  m_AnchoredPosition: {x: -0.4000244, y: -0.09692383}
   m_SizeDelta: {x: -0.7999878, y: 0.6000061}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1758356870

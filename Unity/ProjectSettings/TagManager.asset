@@ -15,6 +15,13 @@ TagManager:
   - Bots_InputField
   - Obstacles_InputField
   - Pumpkins_InputField
+  - IpAddress_InputField
+  - Port_InputField
+  - Connect_Button
+  - Ready_Button
+  - ConnectionStatus_Text
+  - Ip_Text
+  - Port_Text
   layers:
   - Default
   - TransparentFX

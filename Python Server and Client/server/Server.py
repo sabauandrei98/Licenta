@@ -202,7 +202,8 @@ class Server:
 				print("Link Tokens Manager Started !\n")
 
 				#generate some fancy tokens
-				self.tokens = ["token1"]
+				for index, client in enumerate(self.clients):
+					self.tokens.append("token" + str(index))
 
 				print("Tokens generated !\n")
 			
