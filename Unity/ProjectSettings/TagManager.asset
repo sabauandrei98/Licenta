@@ -10,6 +10,11 @@ TagManager:
   - SkeletonStats
   - DebugButton
   - GameManager
+  - NetworkManager
+  - SinglePlayerManager
+  - Bots_InputField
+  - Obstacles_InputField
+  - Pumpkins_InputField
   layers:
   - Default
   - TransparentFX

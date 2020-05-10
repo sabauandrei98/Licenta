@@ -21,7 +21,7 @@ class Player:
 #connect to server info
 SERVER_ADDRESS  = "localhost"
 SERVER_PORT     = 50000
-CLIENT_TOKEN    = "token1"
+CLIENT_TOKEN    = "singleplayer"
 
 #connect to server
 c = ClientSocket(SERVER_ADDRESS, SERVER_PORT, CLIENT_TOKEN, Player.solve)

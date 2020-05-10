@@ -53,16 +53,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Game\Scripts\AIPlayer.cs" />
      <Compile Include="Assets\Game\Scripts\DebugManager.cs" />
-     <Compile Include="Assets\Game\Scripts\DetonateObject.cs" />
-     <Compile Include="Assets\Game\Scripts\Environment\GraveLight.cs" />
      <Compile Include="Assets\Game\Scripts\GameManager.cs" />
      <Compile Include="Assets\Game\Scripts\MapGenerator.cs" />
-     <Compile Include="Assets\Game\Scripts\Player.cs" />
-     <Compile Include="Assets\Game\Scripts\ResourceLoader.cs" />
+     <Compile Include="Assets\Game\Scripts\Objects\DetonateObject.cs" />
+     <Compile Include="Assets\Game\Scripts\Objects\GraveLight.cs" />
+     <Compile Include="Assets\Game\Scripts\Objects\ResourceLoader.cs" />
+     <Compile Include="Assets\Game\Scripts\Player\AIPlayer.cs" />
+     <Compile Include="Assets\Game\Scripts\Player\Player.cs" />
      <Compile Include="Assets\Scripts\Networking\NetworkManager.cs" />
-     <Compile Include="Assets\Scripts\UI\PlayerName.cs" />
+     <Compile Include="Assets\Scripts\Scenes\SceneLoader.cs" />
+     <Compile Include="Assets\Scripts\SinglePlayer\SinglePlayerManager.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>C:/Users/andreis4/Desktop/Licenta/Unity/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>

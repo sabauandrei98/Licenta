@@ -7,7 +7,7 @@ public class MapGenerator
 {
     //some BFS here to verify stuff
 
-    public static string[] GenerateMap(int size_of_map, int pumpkins, int obstacles)
+    public static string[] GenerateMap(int size_of_map, int obstacles, int pumpkins)
     {
         string[] map = new string[size_of_map];
         for (int i = 0; i < size_of_map; i++)
@@ -17,6 +17,7 @@ public class MapGenerator
                 row += '_';
             map[i] = row;
         }
+
 
         while (obstacles > 0 || pumpkins > 0)
         {

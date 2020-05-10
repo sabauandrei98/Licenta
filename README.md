@@ -2,7 +2,12 @@
 
 CURRENT PROGRESS LOG: 
 
-- FIST GAME PLAYED WITH COMPLETE FLOW 1 PLAYER VS 1 BOT
+- FIRST GAME PLAYED ON SINGLE PLAYER AGAINS 3 BOTS
+- Game manager refactoring + integration of the single player manager in the game flow
+- Unity single player screen updated, allows user to choose number of bots, obstacles, pumpkins
+- Single player socket manager implemented
+- FIRST GAME PLAYED WITH 4 PLAYERS ON LAN (DIFFERENT COMPUTERS)
+- FIRST GAME PLAYED WITH COMPLETE FLOW 1 PLAYER VS 1 BOT
 - Changed the Game Manager to allow more than one bot when singleplayer
 - Added parsing function for the python client and spectate mode
 - Fixed the parsing method (Errors due to the '\n')

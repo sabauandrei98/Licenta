@@ -12,6 +12,8 @@ public class NetworkManager : MonoBehaviour
     public Text port_text;
     public Button connect_to_server_button;
     public Button ready_button;
+    public InputField ip_input_field;
+    public InputField port_input_field;
 
     private Socket _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     private byte[] _recieveBuffer = new byte[512];
@@ -31,7 +33,16 @@ public class NetworkManager : MonoBehaviour
     public void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name == "MainMenu")
-            Destroy(this);
+        {
+            
+            GameObject go = GameObject.FindGameObjectWithTag("NetworkManager");
+            if (go != null)
+            {
+                Disconnect();
+                Destroy(go);
+            }
+
+        }
     }
 
     void Update()
@@ -72,7 +83,7 @@ public class NetworkManager : MonoBehaviour
         if (cmd.Split(':')[0] == "IDE_TOKEN")
         {
             ide_token = cmd.Split(':')[1];
-            SetConnectionStatus(Color.white, "This is your ide token: " + ide_token +
+            SetConnectionStatus(Color.white, "This is your ide token: " + "<color=#46CF4E>" + ide_token + "</color>" +
                 "\n Put it in your code to connect to the server from ide");
         }
 
@@ -96,13 +107,13 @@ public class NetworkManager : MonoBehaviour
 
         GameManager game_manager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
         game_manager.instance_token = ide_token;
-        game_manager.PrepareGame(data);
+        game_manager.PrepareGame(data, false);
         SendData(System.Text.Encoding.Default.GetBytes(game_manager.GetSessionData()));
     }
 
     public void ConnectToServerButton()
     {
-        SetupServer();
+        SetupConnection();
         SendData(System.Text.Encoding.Default.GetBytes(UNITY_TOKEN));       
     }
 
@@ -111,7 +122,7 @@ public class NetworkManager : MonoBehaviour
         SendData(System.Text.Encoding.Default.GetBytes("READY"));
     }
 
-    private void SetupServer()
+    private void SetupConnection()
     {
         try
         {
@@ -122,6 +133,9 @@ public class NetworkManager : MonoBehaviour
             }
            
             _clientSocket.Connect(ip_text.text, int.Parse(port_text.text));
+            ip_input_field.interactable = false;
+            port_input_field.interactable = false;
+            connect_to_server_button.interactable = false;
             connected = true;
         }
         catch (SocketException ex)
@@ -181,16 +195,19 @@ public class NetworkManager : MonoBehaviour
     {
         try
         {
-            connected = false;
-            _clientSocket.Shutdown(SocketShutdown.Both);
+            if (connected)
+            {
+                connected = false;
+                _clientSocket.Shutdown(SocketShutdown.Both);
 
-            _clientSocket.Disconnect(true);
-            if (_clientSocket.Connected)
-                Debug.Log("We're still connnected");
-            else
-                Debug.Log("We're disconnected");
+                _clientSocket.Disconnect(true);
+                if (_clientSocket.Connected)
+                    Debug.Log("We're still connnected");
+                else
+                    Debug.Log("We're disconnected");
 
-            _clientSocket.Close();
+                _clientSocket.Close();
+            }
         }
         catch
         {

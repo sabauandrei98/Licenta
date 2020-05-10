@@ -7,47 +7,29 @@ using System;
 
 public class GameManager : MonoBehaviour
 {
-    public int map_size;
-    public bool single_player = true;
     public string instance_token;
 
+    //used while singleplayer
+    public int bots_number = 1;
+    public int obstacles_to_generate;
+    public int pumpkins_to_generate;
+
+    private int map_obstacles_number = 0;
+    private int map_pumpkins_number = 0;
+    private int map_size = 16;
+    private bool game_over = false;
+    private bool single_player;
     private string[] game_map;
     private string[] races = new string[4] { "Farmer", "Human", "Zombie", "Skeleton" };
     private List<GameObject> players_list = new List<GameObject>();
     private List<GameObject> pumpkins_list = new List<GameObject>();
     private List<GameObject> bombs_list = new List<GameObject>();
     private List<Vector3> bombs_details = new List<Vector3>();
-    
-    private int map_obstacles_number = 0;
-    private int map_pumpkins_number = 0;
-    private int number_of_players = 0;
+
+    //can be modified
     private int bomb_range = 2;
-    private int bomb_detonate_time = 8;
-    private float time_between_rounds = 0.5f;
-    private bool game_over = false;
-    
-    /*
-    //this simulates data flow
-    IEnumerator SimulateGame(float time)
-    {
-        yield return new WaitForSeconds(time);
+    private int bomb_detonate_time = 5;
 
-        //ProcessOneRound();
-        StartCoroutine(SimulateGame(time_between_rounds));
-    }
-
-    //this function will be removed
-    void Start()
-    {
-        
-        string[] map = MapGenerator.GenerateMap(16, 36, 60);
-        string[] tokens = new string[2] { "aa", "bb"};
-        PrepareGame(map, tokens);
-
-        StartCoroutine(SimulateGame(time_between_rounds));
-        
-    }
-    */
 
     private struct InitialData
     {
@@ -87,12 +69,12 @@ public class GameManager : MonoBehaviour
 
         int tokens = 0;
         for (int i = 0; i < data_rows.Length; i++)
-            if (data_rows[i].Length < 16)
+            if (data_rows[i].Length < map_size)
                 tokens++;
 
         //Debug.Log("TOKENsize:" + tokens.ToString());
         data.tokens = new string[tokens];
-        data.map = new string[16];
+        data.map = new string[map_size];
 
         for (int i = 0; i < data_rows.Length; i++)
             if (i < tokens)
@@ -105,13 +87,29 @@ public class GameManager : MonoBehaviour
         return data;
     }
 
-    public void PrepareGame(string server_data)
+    public void PrepareGame(string server_data, bool single_player)
     {
-        InitialData data = SplitInitialData(server_data);
-        string[] tokens = new string[4] { "token1", "AI", "AI", "AI"};
-        LoadMapObjects(data.map);
-        LoadPlayers(tokens);
-        UpdateRacesOnMap();
+        this.single_player = single_player;
+
+        if (single_player)
+        {
+            string[] tokens = new string[1 + bots_number];
+            tokens[0] = "singleplayer";
+            for (int i = 1; i < tokens.Length; i++)
+                tokens[i] = "AI";
+
+            string[] map = MapGenerator.GenerateMap(map_size, obstacles_to_generate, pumpkins_to_generate);
+            LoadMapObjects(map);
+            LoadPlayers(tokens);
+            UpdateRacesOnMap();
+        }
+        else
+        {
+            InitialData data = SplitInitialData(server_data);
+            LoadMapObjects(data.map);
+            LoadPlayers(data.tokens);
+            UpdateRacesOnMap();
+        }
     }
 
 
@@ -123,6 +121,16 @@ public class GameManager : MonoBehaviour
     private List<Command> SplitCommands(string server_data)
     {
         List<Command> cmds = new List<Command>();
+
+        if (single_player == true)
+        {
+            Command cmd = new Command();
+            cmd.token = "singleplayer";
+            cmd.command = server_data;
+            cmds.Add(cmd);
+            return cmds;
+        }
+                
         string[] lines = ServerDataToRows(server_data);
 
         for (int i = 0; i < lines.Length; i++)
@@ -132,7 +140,6 @@ public class GameManager : MonoBehaviour
             cmd.command = lines[i].Split('=')[1];
             cmds.Add(cmd);
         }
-
         return cmds;
     }
    
@@ -197,8 +204,7 @@ public class GameManager : MonoBehaviour
             if (game_map[x][y] != 'o')
             {
                 players_list[player_index].GetComponent<Player>().MovePlayerToPosition(x, y);
-            }
-                
+            }    
         }
 
         if (cmd.Split(' ')[0] == "BOMB")
@@ -425,7 +431,6 @@ public class GameManager : MonoBehaviour
     private void LoadMapObjects(string[] map)
     {
         game_map = map;
-        map_size = map[0].Length;
 
         for (int i = 0; i < game_map.Length; i++)
             for (int j = 0; j < game_map[i].Length; j++)

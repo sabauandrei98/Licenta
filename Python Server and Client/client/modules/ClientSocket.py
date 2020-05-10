@@ -31,7 +31,7 @@ class ClientSocket:
 				raise Exception("Your token is wrong OR already used in a connection !")
 
 			#at this point, the client successfully connected to the server
-			print("The you were successfully verified by the server !")
+			print("You were successfully verified by the server !")
 			
 			new_reader = threading.Thread(target = self.socket_reader, args = ())
 			new_writer = threading.Thread(target = self.socket_writer, args = ())
@@ -88,6 +88,7 @@ class ClientSocket:
 		except Exception as e:
 			self.console_log(function_name + str(e))
 		finally:
+			self.client_socket.shutdown(socket.SHUT_RDWR)
 			self.client_socket.close()
 
 	def get_ide_address(self):
@@ -102,6 +103,7 @@ class ClientSocket:
 		print ("Connection:" + self.get_ide_address() + " " + message)
 
 	def get_player_response(self, server_data):
+		print("SERVER DATA:" + server_data)
 		if server_data != "SPECTATE":
 			players_position, game_map, bombs_position = Game.format_data(server_data)
 			self.ide_write = self.solve_function(players_position, game_map, bombs_position)
