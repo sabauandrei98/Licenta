@@ -26,6 +26,9 @@ public class DebugManager : MonoBehaviour
     }
     private void ShowDebugData()
     {
+        if (game_map == null)
+            return;
+
         string text = "";
         for (int i = 0; i < game_map.Length; i++)
         {

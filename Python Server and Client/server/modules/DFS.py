@@ -23,8 +23,8 @@ class DFS:
 		aux_map = copy.deepcopy(map)
 		filled_spaces = 0
 
-		dx = [ 0, 1, 0, 0]
-		dy = [ 1, 0, 0, 0]
+		dx = [ 0, 1, -1, 0]
+		dy = [ 1, 0, 0, -1]
 
 		while len(stack) != 0:
 

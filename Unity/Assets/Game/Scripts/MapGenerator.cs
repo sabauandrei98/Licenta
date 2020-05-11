@@ -5,8 +5,6 @@ using System.Text;
 
 public class MapGenerator
 {
-    //some BFS here to verify stuff
-
     public static string[] GenerateMap(int size_of_map, int obstacles, int pumpkins)
     {
         string[] map = new string[size_of_map];
@@ -18,6 +16,10 @@ public class MapGenerator
             map[i] = row;
         }
 
+        int tries = 0;
+        int max_tries = 1000;
+
+        Debug.Log("MAP OBJECTS: " + obstacles.ToString() + " " + pumpkins.ToString());
 
         while (obstacles > 0 || pumpkins > 0)
         {
@@ -32,32 +34,53 @@ public class MapGenerator
                 int[] x_val = new int[2] { x, size_of_map - 1 - x };
                 int[] y_val = new int[2] { y, size_of_map - 1 - y };
 
-                bool ok = true;
+                bool has_empty_positions = true;
                 for (int i = 0; i < 2; i++)
                     for (int j = 0; j < 2; j++)
                     {
                         if (map[x_val[i]][y_val[j]] != '_')
-                            ok = false;
+                            has_empty_positions = false;
                     }
 
-                if (ok)
+                if (has_empty_positions)
                 {
+                    bool check_map = false;
+                    if (obstacles > 0)
+                        check_map = true;
+
+                    string[] aux_map = map.DeepClone();
                     for (int i = 0; i < 2; i++)
                         for (int j = 0; j < 2; j++)
-                        {
                             if (obstacles > 0)
                             {
                                 obstacles--;
-                                string row = map[x_val[i]];
+                                string row = aux_map[x_val[i]];
 
                                 StringBuilder sb = new StringBuilder(row);
                                 sb[y_val[j]] = 'o';
                                 row = sb.ToString();
 
-                                map[x_val[i]] = row;
+                                aux_map[x_val[i]] = row;
                             }
-                            else
-                            if (pumpkins > 0)
+
+                    if (check_map)
+                    {
+                        if (DFS.CanFillTheEntireMap(aux_map))
+                            map = aux_map.DeepClone();
+                        else
+                        {
+                            obstacles += 4;
+                            tries += 1;
+                            aux_map = map.DeepClone();
+                        }
+                    }
+
+                    if (tries >= max_tries)
+                        obstacles = 0;
+
+                    for (int i = 0; i < 2; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (!check_map && pumpkins > 0)
                             {
                                 pumpkins--;
                                 string row = map[x_val[i]];
@@ -68,7 +91,6 @@ public class MapGenerator
 
                                 map[x_val[i]] = row;
                             }
-                        }
                 }
             }
         }

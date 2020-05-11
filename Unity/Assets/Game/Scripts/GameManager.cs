@@ -168,7 +168,7 @@ public class GameManager : MonoBehaviour
                                 int new_pos_x = dx[ii] * range + bomb_x;
                                 int new_pos_y = dy[ii] * range + bomb_y;
 
-                                if (IsOnMap(new_pos_x, new_pos_y))
+                                if (DFS.IsOnMap(new_pos_x, new_pos_y, map_size))
                                 {
                                     if (x == new_pos_x && y == new_pos_y)
                                     {
@@ -227,11 +227,6 @@ public class GameManager : MonoBehaviour
                     if (found_pumpkin)
                         map_pumpkins_number--;
                 }
-    }
-
-    private bool IsOnMap(int x, int y)
-    {
-        return x >= 0 && y >= 0 && y < map_size && x < map_size;
     }
 
     public string GetSessionData()

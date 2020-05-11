@@ -32,7 +32,7 @@ class Game:
 
 		size_of_map = 16
 		pumpkins = 40
-		obstacles = 80
+		obstacles = 40
 		
 		game_map = [['_' for x in range(size_of_map)] for y in range(size_of_map)] 
 
@@ -50,13 +50,18 @@ class Game:
 				x_val = [x, size_of_map - 1 - x]
 				y_val = [y, size_of_map - 1 - y]
 
-				ok = True
+				has_empty_positions = True
 				for i in range(len(x_val)):
 					for j in range(len(y_val)):
 						if (game_map[x_val[i]][y_val[j]] != '_'):
-							ok = False
+							has_empty_positions = False
 
-				if ok:
+				if has_empty_positions:
+
+					check_map = False
+					if (obstacles > 0):
+						check_map = True
+
 					aux_map = copy.deepcopy(game_map)
 					for i in range(len(x_val)):
 						for j in range(len(y_val)):
@@ -64,22 +69,24 @@ class Game:
 								obstacles -= 1
 								aux_map[x_val[i]][y_val[j]] = 'o'
 
-
-					if DFS.can_fill_all_the_map(aux_map):
-						game_map = copy.deepcopy(aux_map)
-					else:
-						obstacles += 4
-						tries += 1
-						aux_map = copy.deepcopy(game_map)
+					if check_map:
+						if DFS.can_fill_all_the_map(aux_map):
+							game_map = copy.deepcopy(aux_map)
+						else:
+							obstacles += 4
+							tries += 1
+							aux_map = copy.deepcopy(game_map)
 
 					if tries >= max_tries:
 						obstacles = 0
 
 					for i in range(len(x_val)):
 						for j in range(len(y_val)):
-								if (obstacles == 0 and pumpkins > 0):
+								if (not check_map and pumpkins > 0):
 									pumpkins -= 1
 									game_map[x_val[i]][y_val[j]] = 'p'
 
 
 		return game_map
+
+#Game.initial_data(["token1", "token2", "token3", "token4"])
