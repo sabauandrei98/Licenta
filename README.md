@@ -2,6 +2,7 @@
 
 CURRENT PROGRESS LOG: 
 
+- Simple Unity player movement animation and look at target 
 - Fixed some map related bugs on the MapGenerator class in unity client + python server
 - Added dfs check on the single player map generation
 - FIRST GAME PLAYED ON SINGLE PLAYER AGAINS 3 BOTS

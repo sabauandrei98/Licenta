@@ -36,7 +36,8 @@ public class AIPlayer : Player
             if (IsOnMap(xx, yy) && (map[xx][yy] == '_' || map[xx][yy] == 'p'))
                 allowed_moves.Add("MOVE" + " " + xx.ToString() + " " + yy.ToString());
         }
-
-        return allowed_moves[Random.Range(0, allowed_moves.Count)];
+        string move = allowed_moves[Random.Range(0, allowed_moves.Count)];
+        Debug.Log(move);
+        return move;
     }
 }
