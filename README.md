@@ -2,6 +2,8 @@
 
 CURRENT PROGRESS LOG: 
 
+- Fixed some map related bugs on the MapGenerator class in unity client + python server
+- Added dfs check on the single player map generation
 - FIRST GAME PLAYED ON SINGLE PLAYER AGAINS 3 BOTS
 - Game manager refactoring + integration of the single player manager in the game flow
 - Unity single player screen updated, allows user to choose number of bots, obstacles, pumpkins
