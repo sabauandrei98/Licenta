@@ -1,0 +1,2 @@
+server : command line args pumpkins/obstacles
+unity : properly validate the commands

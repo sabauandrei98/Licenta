@@ -2,6 +2,7 @@ import socket
 import threading
 import time
 import os
+import sys
 from modules.Client import Client
 from modules.Game import Game
 
@@ -296,5 +297,22 @@ class Server:
 		game_manager_th.start()
 		
 
-s = Server()
-s.run()
+def main():
+	print("Sys Args: " + str(sys.argv))
+
+	file_argument = 1
+	file_ip_port_arguments = 3
+
+	if len(sys.argv) == file_argument:
+		s = Server()
+		s.run()
+	elif len(sys.argv) == file_ip_port_arguments:
+		try:
+			s = Server(sys.argv[1], int(sys.argv[2]))
+			s.run()
+		except:
+			print("Server could not be started !")
+	else:
+		print("Server could not be started !")
+
+main()

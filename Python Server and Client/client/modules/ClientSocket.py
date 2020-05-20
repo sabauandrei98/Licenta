@@ -111,7 +111,7 @@ class ClientSocket:
 			except:
 				pass
 
-			self.console_log(function_name + ": " + error)
+			self.console_log(function_name + ": " + str(error))
 
 
 
@@ -227,7 +227,7 @@ class ClientSocket:
 	"""
 		This function sends server data to the Player class which will process it
 		and will return a value, filling the "ide_write" var which represents the write buffer
-			@server_data: string, rows of data from the server separated by \n
+			@server_data: string, rows of data from the server separated by 
 	"""
 	def get_player_response(self, server_data):
 

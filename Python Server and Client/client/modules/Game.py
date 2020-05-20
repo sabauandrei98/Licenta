@@ -17,8 +17,8 @@ class Game:
 	"""
 	@staticmethod
 	def format_data(server_data):
-		print("Data from server:\n" + data + "<END>")
-		row_list = data.split('\n')
+		print("Data from server:\n" + server_data + "<END>")
+		row_list = server_data.split('\n')
 		
 		players_position = []
 		game_map = []

@@ -2,7 +2,9 @@
 
 CURRENT PROGRESS LOG: 
 
-- DOCUMENTATION: Python Client code
+- Generated Unity and python server build
+- Added command line args for the python server
+- DOCUMENTATION: Python Client code and some Python server classes
 - Unity asset material change in order to improve render complexity
 - Simple Unity player movement animation and look at target 
 - Fixed some map related bugs on the MapGenerator class in unity client + python server

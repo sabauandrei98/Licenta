@@ -162,7 +162,7 @@ public class NetworkManager : MonoBehaviour
             {
                 single_player_token_validated = true;
                 SetConnectionStatus(Color.green, "Connected to the server ! The game will start soon ..");
-                SendData(System.Text.Encoding.Default.GetBytes("Ok"));
+                SendData(System.Text.Encoding.Default.GetBytes("Token verified !"));
                 StartCoroutine(HandleInitialDataSinglePlayer());
             }
             else
