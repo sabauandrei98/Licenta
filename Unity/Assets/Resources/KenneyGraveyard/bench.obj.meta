@@ -12,7 +12,17 @@ ModelImporter:
     2300000: bench
     3300000: bench
     4300000: bench
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stone
+    second: {fileID: 2100000, guid: 6da1fb40a2eae5a44b3d0b379dc48f61, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: wood
+    second: {fileID: 2100000, guid: 8bddc3032fd3f254d8e062451b113b59, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

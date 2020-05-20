@@ -12,7 +12,17 @@ ModelImporter:
     2300000: lanternGlass
     3300000: lanternGlass
     4300000: lanternGlass
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: light
+    second: {fileID: 2100000, guid: 5501b8c8f4c5f9d47918ebc7cb6ad864, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: metal
+    second: {fileID: 2100000, guid: 77a9f008e2abc5748b409cf45a35dddc, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

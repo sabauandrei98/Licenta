@@ -13,7 +13,22 @@ ModelImporter:
     2300000: pine
     3300000: pine
     4300000: pine
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: foliage
+    second: {fileID: 2100000, guid: 992603f1380b15a4ea9657f23e979000, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: metal
+    second: {fileID: 2100000, guid: 77a9f008e2abc5748b409cf45a35dddc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: wood
+    second: {fileID: 2100000, guid: 8bddc3032fd3f254d8e062451b113b59, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

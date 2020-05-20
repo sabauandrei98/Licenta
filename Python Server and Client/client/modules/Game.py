@@ -1,8 +1,22 @@
+"""
+	This class is unique for the current game
+	being specific for the current game data format
 
+	Can be adjusted for any other games
+"""
 class Game:
 
+	"""
+	This function splits the data from the server into variables
+		@server_data: string, representing rows, separation token: \n
+
+		return: touple, representing:
+				list<pair>   - players position
+				list<string> - map rows
+				list<pair>   - bombs position
+	"""
 	@staticmethod
-	def format_data(data):
+	def format_data(server_data):
 		print("Data from server:\n" + data + "<END>")
 		row_list = data.split('\n')
 		
@@ -26,8 +40,9 @@ class Game:
 					coords = row.split(' ')
 					bombs_position.append((int(coords[0]), int(coords[1])))
 
-		print (str(players_position))
-		print(str(game_map))
-		print(str(bombs_position))
+		#Debug processed data
+		#print (str(players_position))
+		#print(str(game_map))
+		#print(str(bombs_position))
 
 		return players_position, game_map, bombs_position

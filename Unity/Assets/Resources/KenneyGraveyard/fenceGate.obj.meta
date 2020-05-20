@@ -16,7 +16,12 @@ ModelImporter:
     3300002: fenceGate
     4300000: board
     4300002: fenceGate
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: wood
+    second: {fileID: 2100000, guid: 8bddc3032fd3f254d8e062451b113b59, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

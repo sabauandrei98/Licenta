@@ -2,6 +2,8 @@
 
 CURRENT PROGRESS LOG: 
 
+- DOCUMENTATION: Python Client code
+- Unity asset material change in order to improve render complexity
 - Simple Unity player movement animation and look at target 
 - Fixed some map related bugs on the MapGenerator class in unity client + python server
 - Added dfs check on the single player map generation

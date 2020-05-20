@@ -66,7 +66,7 @@ class Server:
 								client_found = True
 								client.ide_socket = client_socket
 								client.is_ide_connected = True
-								client.ide_socket.send("Token verified ! You are now connected to the server !")
+								client.ide_socket.send("Token verified !")
 								client.start_new_socket_handler(client_socket, "ide")
 								print ("Ide linked with Unity and ready to play !")
 

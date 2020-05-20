@@ -12,7 +12,17 @@ ModelImporter:
     2300000: ironFenceBorderCurve
     3300000: ironFenceBorderCurve
     4300000: ironFenceBorderCurve
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: metal
+    second: {fileID: 2100000, guid: 77a9f008e2abc5748b409cf45a35dddc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stone
+    second: {fileID: 2100000, guid: 6da1fb40a2eae5a44b3d0b379dc48f61, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

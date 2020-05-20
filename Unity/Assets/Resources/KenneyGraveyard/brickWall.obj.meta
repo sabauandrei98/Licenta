@@ -12,7 +12,17 @@ ModelImporter:
     2300000: brickWall
     3300000: brickWall
     4300000: brickWall
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: brick
+    second: {fileID: 2100000, guid: bf5652eaa8625544fb805df2293125d4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stone
+    second: {fileID: 2100000, guid: 6da1fb40a2eae5a44b3d0b379dc48f61, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

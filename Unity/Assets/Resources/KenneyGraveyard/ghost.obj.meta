@@ -16,7 +16,12 @@ ModelImporter:
     3300002: armRight
     4300000: armLeft
     4300002: armRight
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: wax
+    second: {fileID: 2100000, guid: d7ca1cd8b91325247a0d4fc0da9b1ccd, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

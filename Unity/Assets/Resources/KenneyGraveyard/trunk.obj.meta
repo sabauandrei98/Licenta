@@ -12,7 +12,17 @@ ModelImporter:
     2300000: trunk
     3300000: trunk
     4300000: trunk
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: wood
+    second: {fileID: 2100000, guid: 8bddc3032fd3f254d8e062451b113b59, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: woodDark
+    second: {fileID: 2100000, guid: ca6f0e1e358008d4bafe17f30446c0c0, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

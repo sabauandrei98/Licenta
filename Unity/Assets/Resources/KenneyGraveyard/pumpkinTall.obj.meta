@@ -12,7 +12,17 @@ ModelImporter:
     2300000: pumpkinTall
     3300000: pumpkinTall
     4300000: pumpkinTall
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: metal
+    second: {fileID: 2100000, guid: 77a9f008e2abc5748b409cf45a35dddc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pumpkin
+    second: {fileID: 2100000, guid: 18fc56b0fd3a0864fab0e46b321b9ce4, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
