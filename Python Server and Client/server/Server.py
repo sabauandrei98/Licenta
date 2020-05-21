@@ -6,23 +6,38 @@ import sys
 from modules.Client import Client
 from modules.Game import Game
 
-#connection
-DEFAULT_HOST = ''
-DEFAULT_PORT = 50000
-DEFAULT_LISTEN = 5
-RECV_SIZE_BYTES = 512
-MAX_PLAYERS = 4
-
-WAIT_FOR_CLIENT_TIME = 1
 
 class Server:
 
 	def __init__(self, host = None, port = None):
-		self.host = DEFAULT_HOST if not host else host
-		self.port = DEFAULT_PORT if not port else port
+
+		#default connection details
+		self.DEFAULT_HOST = ''
+		self.DEFAULT_PORT = 50000
+		self.DEFAULT_LISTEN = 5
+
+		#specific game variables used by the server
+		self.UNITY_TOKEN 				  = Game.get_unity_token();
+		self.RECV_SIZE_BYTES			  = Game.get_buffer_size()
+		self.MAX_PLAYERS 		          = Game.get_max_players()
+		self.WAIT_FOR_CLIENT              = Game.wait_for_client()
+		self.WAIT_FOR_READY_CLIENT        = Game.wait_for_ready_client()
+		self.WAIT_FOR_CLIENT_TO_GET_READY = Game.wait_for_client_to_get_ready()
+
+		#address the server will run on
+		self.host = self.DEFAULT_HOST if not host else host
+
+		#port the server will run on
+		self.port = self.DEFAULT_PORT if not port else port
+
+		#connection state bools
 		self.all_unity_clients_ready = False
 		self.all_ide_clients_ready = False
+
+		#list of clients, each client packing a unity and an ide socket
 		self.clients = []
+
+		#list of tokens that are used on the server
 		self.tokens = []
 
 
@@ -31,10 +46,93 @@ class Server:
 			self.s_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.s_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 			self.s_socket.bind((self.host, self.port))
-			self.s_socket.listen(DEFAULT_LISTEN)
+			self.s_socket.listen(self.DEFAULT_LISTEN)
 			print ("SERVER ON ! " + self.host + ":" + str(self.port))
 		except Exception as error:
 			print ("Could not create server socket: " + str(error))
+
+
+	def handle_unity_client(self, client_socket):
+				
+		#set a timeout
+		client_socket.settimeout(self.WAIT_FOR_CLIENT)
+
+		#receive the token from the client
+		client_token = client_socket.recv(self.RECV_SIZE_BYTES)
+
+		#if no answer from the client, close the connection
+		if (client_token == ""):
+			raise Exception("Client lost connection to the server !")
+
+		#if the token is valid
+		if client_token == self.UNITY_TOKEN:
+			#send client feedback
+			client_socket.send("TOKEN OK")
+
+			#reset the socket timeout 
+			client_socket.settimeout(self.WAIT_FOR_CLIENT_TO_GET_READY)
+		else:
+			#send client feedback
+			client_socket.send("Wrong token from the client !")
+
+			#raise exception which will close the connection
+			raise Exception ("Wrong token from the client !")
+
+		#server console log
+		print("New Client connected ! Verified token !" + str(client_socket.getpeername()))
+
+		#create a client instance
+		client = Client(client_socket)
+
+		#start a new socket handler which will create threads for sending and receiving data
+		client.start_new_socket_handler(client_socket, "unity")
+
+		#update client connection status and add it to the list of clients
+		client.is_connected = True
+		self.clients.append(client)
+
+
+	def handle_ide_client(self, client_socket):
+
+		#search for the token and link unity session to an ide session inside client class
+		ide_token = client_socket.recv(self.RECV_SIZE_BYTES)
+
+		#if no answer from the client, close the connection
+		if (ide_token == ""):
+			raise Exception("Client lost connection to the server !")
+
+		else:
+			client_found = False
+
+			#iterate through clients list to see if any unity session has the corresponding token
+			for client in self.clients:
+
+				#if token was found and there is no ide already connected
+				if client.ide_token == ide_token and not client.is_ide_connected:
+					client_found = True
+
+					#link the socket to the Client class
+					client.ide_socket = client_socket
+
+					#change ide connection status
+					client.is_ide_connected = True
+
+					#send client feedback
+					client.ide_socket.send("TOKEN OK")
+
+					#server console log
+					print ("Ide linked with Unity and ready to play !")
+
+					#start a new socket handler which will create threads for sending and receiving data
+					client.start_new_socket_handler(client_socket, "ide")
+					
+			#if no client found
+			if not client_found:
+				#send client feedback
+				client_socket.send("No unity session with this token !")
+
+				#raise exception which will close the connection
+				raise Exception ("No unity session with this token !")
 
 
 	def new_clients_manager(self):
@@ -42,47 +140,39 @@ class Server:
 
 		try:
 			while True:
+
 				#wait for a new player
 				client_socket, addr = self.s_socket.accept()
 
-				#IN UNITY LOBBY
-				if not self.all_unity_clients_ready and len(self.clients) < MAX_PLAYERS:
-					client = Client(client_socket)
-					if (client.has_valid_token(client_socket, client.UNITY_TOKEN)):
-						print("New Client connected ! Verified token !" + str(client_socket.getpeername()))
-						client.is_connected = True
-						client.start_new_socket_handler(client_socket, "unity")
-						self.clients.append(client)
-				
-				#IN READY MODE, WAITING FOR IDE TO CONNECT
-				if self.all_unity_clients_ready and not self.all_ide_clients_ready:
-					#search for the token and link unity to one ide
-					ide_token = client_socket.recv(RECV_SIZE_BYTES)
-					if (ide_token == ""):
-						self.disconnect_one(client_socket)
-					else:
-						client_found = False
-						for client in self.clients:
-							if client.ide_token == ide_token and not client.is_ide_connected:
-								client_found = True
-								client.ide_socket = client_socket
-								client.is_ide_connected = True
-								client.ide_socket.send("Token verified !")
-								client.start_new_socket_handler(client_socket, "ide")
-								print ("Ide linked with Unity and ready to play !")
+				try:
 
-						if not client_found:
-							client_socket.send("GAME RUNNING")
-							self.disconnect_one(client_socket)
+					#unity lobby phase
+					if not self.all_unity_clients_ready and len(self.clients) < self.MAX_PLAYERS:
+						self.handle_unity_client(client_socket)
+					
+					#ide linking phase
+					if self.all_unity_clients_ready and not self.all_ide_clients_ready:
+						self.handle_ide_client()
 
-				#IN THE GAME, REJECT ANY CONNECTION
-				if self.all_ide_clients_ready:
-				   client_socket.send("GAME RUNNING")
-				   print("A client tried to connect while playing !")
-				   self.disconnect_one(client_socket)
-				
+					#game running phase
+					if self.all_ide_clients_ready:
+						client_socket.send("Client tried to connect while the game is running")
+						raise Exception("Client tried to connect while the game is running !")
+
+					#server is full
+					if not self.all_unity_clients_ready and len(self.clients) == self.MAX_PLAYERS:
+						client_socket.send("The server is full !")
+						raise Exception("The server is full !")
+
+				#handle possible client exceptions and close the connection
+				except Exception as exception:
+					print ("Socket: " + str(client_socket.getpeername()) + " disconnected due to: " + str(exception))
+					self.disconnect_one(client_socket)
+
+		
+		#handle possible server exceptions and close the server
 		except Exception as e:
-			print ("Exception :" + str(e))
+			print ("SERVER EXCEPTION :" + str(e))
 		finally:
 			self.close_the_server()
 
@@ -98,6 +188,11 @@ class Server:
 						client.lobby_ready = True
 						client.unity_write = "READY OK"
 						ready_clients += 1
+
+						try:
+							client.unity_socket.settimeout(self.WAIT_FOR_READY_CLIENT)
+						except:
+							self.disconnect_one(client)
 				else:
 					ready_clients += 1
 
@@ -106,6 +201,7 @@ class Server:
 				print("##### All unity clients ready ! ####\n")
 
 			time.sleep(1)
+
 
 		while not self.all_ide_clients_ready:
 			ready_ides = 0
@@ -133,7 +229,12 @@ class Server:
 				#send initial data to unity 
 				print("Generating initial data..")
 				for client in self.clients:
-					client.unity_write = Game.initial_data(self.tokens)
+					try:
+						client.unity_write = Game.initial_data(self.tokens)
+						#sockets time
+					except:
+						self.disconnect_one(client)
+
 				print("Initial data generated !")
 
 				while True:
@@ -141,7 +242,7 @@ class Server:
 					#initial data has been sent
 					#now unity will create a data packet which will be sent to ide
 					#wait for unity response
-					time.sleep(WAIT_FOR_CLIENT_TIME)
+					time.sleep(self.WAIT_FOR_CLIENT)
 
 					#if no player left, close the server
 					if len(self.clients) == 0:
@@ -159,14 +260,10 @@ class Server:
 						else:
 							#late response from player
 							self.disconnect_one(client)
-							#if no player left, close the server
-							if len(self.clients) == 0:
-								self.close_the_server()
-
 
 					#at this point one flow is done
 					#wait for ide response
-					time.sleep(WAIT_FOR_CLIENT_TIME)
+					time.sleep(self.WAIT_FOR_CLIENT)
 
 					#if no player left, close the server
 					if len(self.clients) == 0:
@@ -183,9 +280,10 @@ class Server:
 						else:
 							#late response from player
 							self.disconnect_one(client)
-							#if no player left, close the server
-							if len(self.clients) == 0:
-								self.close_the_server()
+
+					#if no player left, close the server
+					if len(self.clients) == 0:
+						self.close_the_server()
 
 					#generate single packet to send to each unity client
 					packet_to_send = Game.pack_ide_data(ide_commands)
@@ -240,7 +338,6 @@ class Server:
 				client.close()
 
 		except Exception as ex:
-			print ("Client could not be disconnected !" + str(ex))
 			return
 
 		print ("One client disconnected !")

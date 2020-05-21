@@ -80,7 +80,7 @@ class ClientSocket:
 			self.console_log(function_name + ": Server response: " + message)
 
 			#if token not verified, raise exception
-			if (message != "Token verified !"):
+			if (message != "TOKEN OK"):
 				raise Exception("Your token is wrong OR already used in a connection !")
 
 			#at this point, the client successfully connected to the server
@@ -144,7 +144,7 @@ class ClientSocket:
 				#send data to the Player class to be processed
 				self.get_player_response(self.ide_read)
 		
-		#handle the possible exceptions			
+		#handle the possible exceptions and close the connection	
 		except socket.timeout:
 			self.console_log(function_name + ": This client has been disconnected due to timeout !")
 		except socket.error:
@@ -160,7 +160,7 @@ class ClientSocket:
 
 	"""
 		This function is running on a separate thread
-			- it check if "ide_write" var has any data and sends it to the server
+			- it checks if "ide_write" var has any data and sends it to the server
 			- logs the information
 
 			- in case of any error, the connection to the server is closed
@@ -183,7 +183,7 @@ class ClientSocket:
 
 				self.console_log(function_name + ": Message sent to server ! Msg:\n" + self.ide_write + "<END>")
 
-				#reset the variable to avoid futher sendings
+				#reset the variable to avoid further sendings
 				self.ide_write = ""
 		
 		#handle the possible exceptions		

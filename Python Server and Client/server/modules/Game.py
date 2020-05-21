@@ -10,6 +10,30 @@ from Helpers import Helpers
 """
 class Game:
 
+	@staticmethod
+	def get_max_players():
+		return 4
+
+	@staticmethod
+	def get_buffer_size():
+		return 512
+
+	@staticmethod
+	def wait_for_client():
+		return 1
+
+	@staticmethod
+	def wait_for_ready_client():
+		return 9999
+
+	@staticmethod
+	def wait_for_client_to_get_ready():
+		return 30
+
+	@staticmethod
+	def get_unity_token():
+		return "439b3a25b555b3bc8667a09a036ae70c"
+
 	"""
 		This method receives a tokens list and prepares the initial data for the game
 			- for security reasons, the map is generated on the server
