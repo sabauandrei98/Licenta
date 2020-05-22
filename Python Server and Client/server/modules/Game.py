@@ -20,7 +20,7 @@ class Game:
 
 	@staticmethod
 	def wait_for_client():
-		return 1
+		return 2
 
 	@staticmethod
 	def wait_for_ready_client():

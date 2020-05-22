@@ -6,6 +6,10 @@
 """
 class Game:
 
+	@staticmethod
+	def get_buffer_size():
+		return 512
+
 	"""
 	This function splits the data from the server into variables
 		@server_data: string, representing rows, separation token: \n

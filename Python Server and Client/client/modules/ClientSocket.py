@@ -4,9 +4,6 @@ import time
 import threading
 from Game import Game
 
-#socket buffer size
-RECV_SIZE_BYTES = 512
-
 """
 	Client socket class is responsible for:
 		- creating a socket which connects to the server
@@ -30,6 +27,9 @@ class ClientSocket:
 		self.port			= port
 		self.token 			= token
 		self.solve_function = solve_function
+
+		#receive from server buffer size
+		self.RECV_SIZE_BYTES = Game.get_buffer_size()
 
 		#socket which will be used to send and receive data
 		self.client_socket = None
@@ -76,7 +76,7 @@ class ClientSocket:
 			self.client_socket.send(self.token)
 
 			#string, server respose
-			message = self.client_socket.recv(RECV_SIZE_BYTES)
+			message = self.client_socket.recv(self.RECV_SIZE_BYTES)
 			self.console_log(function_name + ": Server response: " + message)
 
 			#if token not verified, raise exception
@@ -133,7 +133,7 @@ class ClientSocket:
 				self.console_log(function_name + ": Waiting to read from server...")
 
 				#string, store data received from the server
-				self.ide_read = self.client_socket.recv(RECV_SIZE_BYTES)
+				self.ide_read = self.client_socket.recv(self.RECV_SIZE_BYTES)
 
 				#if empty data, close the connection
 				if (self.ide_read == ""):
