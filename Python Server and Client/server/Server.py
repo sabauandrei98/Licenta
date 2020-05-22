@@ -298,7 +298,7 @@ class Server:
 
 
 
-    """
+	"""
 		This function is running on a separate thread:
 			- it sends the initial data to the clients
 			- it ensures the following flows of data:
@@ -306,7 +306,7 @@ class Server:
 					ide   -> server -> unity
 
 			- if one of the client is not reachable, disconnect it
-    """
+	"""
 	def game_manager(self):
 
 		while True:
@@ -329,9 +329,6 @@ class Server:
 						try:
 							#generate initial data and put in in the buffer to be sent to unity
 							client.unity_write = Game.initial_data(self.tokens)
-
-							#reset the socket timeout
-							client_socket.settimeout(self.wait_for_client)
 						except:
 							#disconnect if client not reachable
 							self.disconnect_one(client)

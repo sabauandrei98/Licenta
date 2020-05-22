@@ -2,6 +2,7 @@
 
 CURRENT PROGRESS LOG: 
 
+- Added thread locks for the safety of the python server variables
 - Generated Unity and python server build
 - Added command line args for the python server
 - DOCUMENTATION: Python Client code and some Python server classes
