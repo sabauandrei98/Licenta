@@ -8,7 +8,6 @@ TagManager:
   - HumanStats
   - ZombieStats
   - SkeletonStats
-  - DebugButton
   - GameManager
   - NetworkManager
   - SinglePlayerManager
@@ -22,6 +21,8 @@ TagManager:
   - ConnectionStatus_Text
   - Ip_Text
   - Port_Text
+  - Debug_Panel
+  - Debug_Button
   layers:
   - Default
   - TransparentFX

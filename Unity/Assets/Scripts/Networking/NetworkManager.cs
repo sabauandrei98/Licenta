@@ -10,9 +10,6 @@ using System.Net;
 public class NetworkManager : MonoBehaviour
 {
     //single player
-    private InputField bots_input_field;
-    private InputField obstacles_input_field;
-    private InputField pumpkins_input_field;
     private Thread server_thread;
     private Socket server_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     private float wait_client_time = 1.0f;
@@ -44,9 +41,6 @@ public class NetworkManager : MonoBehaviour
         if (SceneManager.GetActiveScene().name == "Singleplayer")
         {
             single_player = true;
-            bots_input_field = GameObject.FindWithTag("Bots_InputField").GetComponent<InputField>();
-            obstacles_input_field = GameObject.FindWithTag("Obstacles_InputField").GetComponent<InputField>();
-            pumpkins_input_field = GameObject.FindWithTag("Pumpkins_InputField").GetComponent<InputField>();
             connection_status = GameObject.FindWithTag("ConnectionStatus_Text").GetComponent<Text>();
         }
         else
@@ -162,7 +156,7 @@ public class NetworkManager : MonoBehaviour
             {
                 single_player_token_validated = true;
                 SetConnectionStatus(Color.green, "Connected to the server ! The game will start soon ..");
-                SendData(System.Text.Encoding.Default.GetBytes("Token verified !"));
+                SendData(System.Text.Encoding.Default.GetBytes("TOKEN OK"));
                 StartCoroutine(HandleInitialDataSinglePlayer());
             }
             else
@@ -180,61 +174,13 @@ public class NetworkManager : MonoBehaviour
     {
 
         SceneManager.LoadScene("Game");
-        Vector3 singleplayer_settings = SinglePlayerSettings();
 
         yield return new WaitForSeconds(1.5f);
 
         GameManager game_manager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
-
-        game_manager.bots_number = (int)singleplayer_settings.x;
-        game_manager.obstacles_to_generate = (int)singleplayer_settings.y;
-        game_manager.pumpkins_to_generate = (int)singleplayer_settings.z;
-
         game_manager.PrepareGame("", true);
         SendData(System.Text.Encoding.Default.GetBytes(game_manager.GetSessionData()));
     }
-
-
-    private Vector3 SinglePlayerSettings()
-    {
-        int AI_number = 1;
-        int obstacles_number = 40;
-        int pumpkins_number = 40;
-        try
-        {
-            int aux = int.Parse(bots_input_field.text);
-            if (1 <= aux && aux <= 3)
-                AI_number = aux;
-        }
-        catch { }
-
-        try
-        {
-            int aux = int.Parse(obstacles_input_field.text);
-            if (1 <= aux && aux <= 80)
-                obstacles_number = aux;
-
-            obstacles_number = (obstacles_number / 4) * 4;
-            if (obstacles_number < 4)
-                obstacles_number = 4;
-        }
-        catch { }
-
-        try
-        {
-            int aux = int.Parse(pumpkins_input_field.text);
-            if (1 <= aux && aux <= 80)
-                pumpkins_number = aux;
-
-            pumpkins_number = (pumpkins_number / 4) * 4;
-            if (pumpkins_number < 4)
-                pumpkins_number = 4;
-        }
-        catch { }
-
-        return new Vector3(AI_number, obstacles_number, pumpkins_number);
-    }
-
 
 
     /// <summary>
@@ -291,17 +237,20 @@ public class NetworkManager : MonoBehaviour
         {
             SetConnectionStatus(Color.green, "Connected to the server! Token verified !");
             ready_button.gameObject.SetActive(true);
+            return;
         }
 
         if (cmd == "READY OK")
         {
             SetConnectionStatus(Color.blue, "You are ready !");
+            return;
         }
 
         if (cmd == "GAME RUNNING")
         {
             SetConnectionStatus(Color.red, "Sorry, the game is running !");
             Disconnect();
+            return;
         }
 
         if (cmd.Split(':')[0] == "IDE_TOKEN")
@@ -309,19 +258,28 @@ public class NetworkManager : MonoBehaviour
             ide_token = cmd.Split(':')[1];
             SetConnectionStatus(Color.white, "This is your ide token: " + "<color=#46CF4E>" + ide_token + "</color>" +
                 "\n Put it in your code to connect to the server from ide");
+            return;
         }
 
         if (cmd.Split(':')[0] == "INITIAL_DATA")
         {
             StartCoroutine(HandleInitialDataMultiPlayer(cmd.Split(':')[1]));
+            return;
         }
 
         if (cmd.Split(':')[0] == "ROUND")
         {
             GameManager game_manager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
             game_manager.ProcessOneRound(cmd.Split(':')[1]);
+
+            string sessionData = game_manager.GetSessionData();
+            Debug.Log("Send to ide: " + sessionData);
             SendData(System.Text.Encoding.Default.GetBytes(game_manager.GetSessionData()));
+            return;
         }
+
+        //info text
+        SetConnectionStatus(Color.magenta, cmd);
     }
 
     private IEnumerator HandleInitialDataMultiPlayer(string data)

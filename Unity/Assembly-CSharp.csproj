@@ -53,17 +53,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Game\Scripts\DebugManager.cs" />
      <Compile Include="Assets\Game\Scripts\GameManager.cs" />
-     <Compile Include="Assets\Game\Scripts\Helpers\DataParsing.cs" />
-     <Compile Include="Assets\Game\Scripts\Helpers\DFS.cs" />
      <Compile Include="Assets\Game\Scripts\Helpers\ExtensionMethods.cs" />
-     <Compile Include="Assets\Game\Scripts\MapGenerator.cs" />
+     <Compile Include="Assets\Game\Scripts\Helpers\GameDebuggerWindow.cs" />
+     <Compile Include="Assets\Game\Scripts\Helpers\NetworkDataParsing.cs" />
      <Compile Include="Assets\Game\Scripts\Objects\DetonateObject.cs" />
      <Compile Include="Assets\Game\Scripts\Objects\GraveLight.cs" />
+     <Compile Include="Assets\Game\Scripts\Objects\MapGenerator.cs" />
      <Compile Include="Assets\Game\Scripts\Objects\ResourceLoader.cs" />
      <Compile Include="Assets\Game\Scripts\Player\AIPlayer.cs" />
      <Compile Include="Assets\Game\Scripts\Player\Player.cs" />
+     <Compile Include="Assets\Game\Scripts\SinglePlayerParameters.cs" />
      <Compile Include="Assets\Scripts\Networking\NetworkManager.cs" />
      <Compile Include="Assets\Scripts\Scenes\SceneLoader.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">

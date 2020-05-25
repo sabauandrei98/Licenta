@@ -8,17 +8,13 @@ using System;
 public class GameManager : MonoBehaviour
 {
     public string instance_token;
+    public static int map_size = 16;
 
-    //used while singleplayer
-    public int bots_number = 1;
-    public int obstacles_to_generate;
-    public int pumpkins_to_generate;
-
-    private int map_obstacles_number = 0;
-    private int map_pumpkins_number = 0;
-    private int map_size = 16;
     private bool game_over = false;
     private bool single_player;
+    
+    private int map_obstacles_number = 0;
+    private int map_pumpkins_number = 0;
     private string[] game_map;
     private string[] races = new string[4] { "Farmer", "Human", "Zombie", "Skeleton" };
     private List<GameObject> players_list = new List<GameObject>();
@@ -37,6 +33,10 @@ public class GameManager : MonoBehaviour
 
         if (single_player)
         {
+            int bots_number = PlayerPrefs.GetInt("BotsNumber");
+            int obstacles_to_generate = PlayerPrefs.GetInt("ObstaclesNumber");
+            int pumpkins_to_generate = PlayerPrefs.GetInt("PumpkinsNumber");
+
             string[] tokens = new string[1 + bots_number];
             tokens[0] = "singleplayer";
             for (int i = 1; i < tokens.Length; i++)
@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            DataParsing.InitialData data = DataParsing.SplitInitialData(server_data);
+            NetworkDataParsing.InitialData data = NetworkDataParsing.SplitInitialData(server_data);
             LoadMapObjects(data.map);
             LoadPlayers(data.tokens);
             UpdateRacesOnMap();
@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
         if (game_over)
             return;
 
-        List<DataParsing.Command> cmds = DataParsing.SplitCommands(server_data, single_player);
+        List<NetworkDataParsing.Command> cmds = NetworkDataParsing.SplitCommands(server_data, single_player);
         ExecuteBombs();
 
         if (EndOfTheGame())
@@ -94,7 +94,7 @@ public class GameManager : MonoBehaviour
 
         RemovePumpkinsIfCollected();
         UpdateRacesOnMap();
-        gameObject.GetComponent<DebugManager>().Notify(ref game_map, ref bombs_details);
+        gameObject.GetComponent<GameDebuggerWindow>().Notify(ref game_map, ref bombs_details);
     }
 
     private void HandleCommand(string cmd, int player_index)
@@ -168,7 +168,7 @@ public class GameManager : MonoBehaviour
                                 int new_pos_x = dx[ii] * range + bomb_x;
                                 int new_pos_y = dy[ii] * range + bomb_y;
 
-                                if (DFS.IsOnMap(new_pos_x, new_pos_y, map_size))
+                                if (MapGenerator.IsOnMap(new_pos_x, new_pos_y, map_size))
                                 {
                                     if (x == new_pos_x && y == new_pos_y)
                                     {
@@ -231,8 +231,8 @@ public class GameManager : MonoBehaviour
 
     public string GetSessionData()
     {
-        //if the player is dead enter the spectate mode
-        if (IsPlayerDead(instance_token))
+        //if the player is dead or the game is over enter the spectate mode
+        if (IsPlayerDead(instance_token) || game_over)
             return "SPECTATE";
 
         //first store the position of the instance

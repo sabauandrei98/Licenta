@@ -42,11 +42,11 @@ class Game:
 		Game
 	"""
 	@staticmethod
-	def get_pumpkins_number()
+	def get_pumpkins_number():
 		return 40
 
 	@staticmethod
-	def get_obstacles_number()
+	def get_obstacles_number():
 		return 40
 
 	@staticmethod
