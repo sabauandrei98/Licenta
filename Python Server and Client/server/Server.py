@@ -618,15 +618,10 @@ def main():
 		s = Server()
 		s.run()
 	elif len(sys.argv) == file_ip_port_arguments:
-
-		#try to start the server with the given arguments
-		try:
-			s = Server(sys.argv[1], int(sys.argv[2]))
-			s.run()
-		except:
-			print("Server could not be started !")
+		s = Server(sys.argv[1], int(sys.argv[2]))
+		s.run()
 	else:
-		print("Server could not be started !")
+		print("Server could not be started ! Check the arguments and try again !")
 
 
 #call the main function

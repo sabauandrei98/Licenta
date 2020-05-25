@@ -10,6 +10,9 @@ from Helpers import Helpers
 """
 class Game:
 
+	"""
+		Server
+	"""
 	@staticmethod
 	def get_max_players():
 		return 4
@@ -33,6 +36,23 @@ class Game:
 	@staticmethod
 	def get_unity_token():
 		return "439b3a25b555b3bc8667a09a036ae70c"
+
+
+	"""
+		Game
+	"""
+	@staticmethod
+	def get_pumpkins_number()
+		return 40
+
+	@staticmethod
+	def get_obstacles_number()
+		return 40
+
+	@staticmethod
+	def get_map_size():
+		return 16
+
 
 	"""
 		This method receives a tokens list and prepares the initial data for the game
@@ -89,68 +109,98 @@ class Game:
 
 
 	"""
-		TO DO
+		This function is responsible for generating the game map
+
+		@return: char[][], representing the map
 	"""
 	@staticmethod
 	def generate_map():
 
-		size_of_map = 16
-		pumpkins = 40
-		obstacles = 40
+		#get info about the map
+		size_of_map = Game.get_map_size()
+		pumpkins    = Game.get_pumpkins_number()
+		obstacles   = Game.get_obstacles_number()
 		
+		#create an empty map
 		game_map = [['_' for x in range(size_of_map)] for y in range(size_of_map)] 
 
+		#sometimes, there are dead ends on the map
+		#avoid infinite loop by setting an upper iterations limit
 		tries = 0
 		max_tries = 1000
+
+		#loop while there are things left to place on the map
 		while (obstacles > 0 or pumpkins > 0):
-		
+			
+			#choose a random position to place something on map
 			x = random.randint(0, size_of_map - 1)
 			y = random.randint(0, size_of_map - 1)
 
+			#check if that position is empty and if that position is not an edge
+			#because players are spawned on the edges of the map
 			if (game_map[x][y] == '_' and
 				(x != 0 or y != 0) and (x != size_of_map - 1 or y != size_of_map - 1) and
 				(x != size_of_map - 1 or y != 0) and (x != 0 or y != size_of_map - 1)):
-			
+				
+				#compute the simetric coords vectors
 				x_val = [x, size_of_map - 1 - x]
 				y_val = [y, size_of_map - 1 - y]
 
+				#bool to check if all the 4 coords are free
 				has_empty_positions = True
 				for i in range(len(x_val)):
 					for j in range(len(y_val)):
 						if (game_map[x_val[i]][y_val[j]] != '_'):
 							has_empty_positions = False
 
+				#if all that 4 coords are free
 				if has_empty_positions:
 
+					#variable responsible for obstacles positioning
+					#if true, the map must be checked to make sure there are no dead ends
 					check_map = False
 					if (obstacles > 0):
 						check_map = True
 
+					#create a deep copy of the object to avoid overwriting problems
 					aux_map = copy.deepcopy(game_map)
+
+					#place obstacles on the map
 					for i in range(len(x_val)):
 						for j in range(len(y_val)):
 							if (obstacles > 0):
 								obstacles -= 1
 								aux_map[x_val[i]][y_val[j]] = 'o'
 
+					#if any obstacles were placed in the for loop above, check_map == True
 					if check_map:
+						#we make sure there are no dead ends
 						if Game.can_fill_all_the_map(aux_map):
+							#if no dead ends, save the state
 							game_map = copy.deepcopy(aux_map)
 						else:
+							#if there are dead ends, reset to the state before
 							obstacles += 4
+							#increment the number of tries
 							tries += 1
+
+							#reset the map to the previous state
 							aux_map = copy.deepcopy(game_map)
 
+					#check if should stop tring to generate the map
 					if tries >= max_tries:
 						obstacles = 0
 
+					#place pumpkins on the map
 					for i in range(len(x_val)):
 						for j in range(len(y_val)):
+								#check if the map was not modified in this iteration
 								if (not check_map and pumpkins > 0):
 									pumpkins -= 1
 									game_map[x_val[i]][y_val[j]] = 'p'
 
 
+		#retrun the generated map
 		return game_map
 
 

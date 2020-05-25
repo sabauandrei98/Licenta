@@ -44,9 +44,5 @@ class Game:
 					coords = row.split(' ')
 					bombs_position.append((int(coords[0]), int(coords[1])))
 
-		#Debug processed data
-		#print (str(players_position))
-		#print(str(game_map))
-		#print(str(bombs_position))
-
+		#return the data topule
 		return players_position, game_map, bombs_position
