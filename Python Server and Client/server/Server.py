@@ -7,8 +7,22 @@ from modules.Client import Client
 from modules.Game import Game
 
 
+"""
+	This class is responsible for
+		- creating an server instance
+		- managing new connected or disconnected clients
+		- linking the unity clients with ide clients
+		- ensuring the data flow (unity <-> server <-> ide)
+"""
 class Server:
 
+	"""
+		The init function sets up the necessary variables
+			@host: string, ip address server will run on
+			@port: int, the server port will run on
+
+			- if these arguments are null, they will have a default value defined below
+	"""
 	def __init__(self, host = None, port = None):
 
 		#default connection details
@@ -102,7 +116,10 @@ class Server:
 		print("New Client connected ! Verified token !" + str(client_socket.getpeername()))
 
 		#create a client instance
-		client = Client(client_socket)
+		client = Client()
+
+		#assign the unity socket
+		client.unity_socket = client_socket
 
 		#start a new socket handler which will create threads for sending and receiving data
 		client.start_new_socket_handler(client_socket, "unity")

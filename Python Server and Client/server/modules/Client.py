@@ -2,37 +2,48 @@ import socket
 import threading
 import time
 import sys
+from Game import Game
 
-
+"""
+	This class is packing up an unity socket and an ide socket representing an single Client
+		- the class also manages the reading and the writing from and to the server
+"""
 class Client:
 
-	def __init__(self, unity_socket):
+	def __init__(self):
 
+		#reading data buffer size
+		self.recv_size_bytes = Game.get_buffer_size()
 
-		#DATA TRANSFER VALUES
-		self.RECV_SIZE_BYTES = 512
-
-		#SOCKETS TO SEND AND RECEIVE INFO FROM UNITY AND IDE
-		self.unity_socket = unity_socket
+		#sockets
+		self.unity_socket = None
 		self.ide_socket = None
 
-		#DATA RECEIVED
+		#data received from the unity/ide
 		self.unity_read = ""
 		self.ide_read = ""
 
-		#DATA PENDING TO BE SENT
+		#data pending to be sent to unity/ide
 		self.unity_write = ""
 		self.ide_write = ""
 
-		#CONNECTION STATES
+		#connection states
 		self.is_connected = False
 		self.is_ide_connected = False
 		self.lobby_ready = False
 
-		#IDE TOKEN VALIDATION
+		#ideo token validation
 		self.ide_token = ""
 
 
+	"""
+		This function creates two threads:
+			- one for reading and one for writing data
+
+			@client_socket: socket, representing on which socket will the read/write be executed
+			@client_type: string, argument which will be passed to the function running on the thread
+								 - responsible for knowing on which variable to store the info + console logging
+	"""
 	def start_new_socket_handler(self, client_socket, client_type):
 		new_reader = threading.Thread(target = self.socket_reader, args = (client_socket, client_type))
 		new_writer = threading.Thread(target = self.socket_writer, args = (client_socket, client_type))
@@ -61,7 +72,7 @@ class Client:
 					self.console_log(function_name + ": Waiting to read from unity...")
 
 					#string, store data received from the server
-					self.unity_read = client_socket.recv(self.RECV_SIZE_BYTES)
+					self.unity_read = client_socket.recv(self.recv_size_bytes)
 
 					#if empty data, close the connection
 					if (self.unity_read == ""):
@@ -73,7 +84,7 @@ class Client:
 					self.console_log(function_name + ": Waiting to read from ide...")
 
 					#string, store data received from the server
-					self.ide_read = client_socket.recv(self.RECV_SIZE_BYTES)
+					self.ide_read = client_socket.recv(self.recv_size_bytes)
 
 					#if empty data, close the connection
 					if (self.ide_read == ""):
