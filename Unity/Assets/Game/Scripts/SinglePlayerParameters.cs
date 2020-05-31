@@ -15,15 +15,15 @@ public class SinglePlayerParameters : MonoBehaviour
         bots_input_field = GameObject.FindWithTag("Bots_InputField").GetComponent<InputField>();
         obstacles_input_field = GameObject.FindWithTag("Obstacles_InputField").GetComponent<InputField>();
         pumpkins_input_field = GameObject.FindWithTag("Pumpkins_InputField").GetComponent<InputField>();
+
+        bots_input_field.onValueChanged.AddListener(delegate { Bots_InputField_ValueChanged(); });
+        obstacles_input_field.onValueChanged.AddListener(delegate { Obstacles_InputField_ValueChanged(); });
+        pumpkins_input_field.onValueChanged.AddListener(delegate { Pumpkins_InputField_ValueChanged(); });
     }
 
-    //add here some text changed events
-
-    private Vector3 SinglePlayerSettings()
+    private void Bots_InputField_ValueChanged()
     {
         int AI_number = 1;
-        int obstacles_number = 40;
-        int pumpkins_number = 40;
         try
         {
             int aux = int.Parse(bots_input_field.text);
@@ -31,7 +31,13 @@ public class SinglePlayerParameters : MonoBehaviour
                 AI_number = aux;
         }
         catch { }
+        finally { PlayerPrefs.SetInt("BotsNumber", AI_number); }
+    }
 
+
+    private void Obstacles_InputField_ValueChanged()
+    {
+        int obstacles_number = 40;
         try
         {
             int aux = int.Parse(obstacles_input_field.text);
@@ -43,7 +49,13 @@ public class SinglePlayerParameters : MonoBehaviour
                 obstacles_number = 4;
         }
         catch { }
+        finally { PlayerPrefs.SetInt("ObstaclesNumber", obstacles_number); }
+    }
 
+
+    private void Pumpkins_InputField_ValueChanged()
+    {
+        int pumpkins_number = 40;
         try
         {
             int aux = int.Parse(pumpkins_input_field.text);
@@ -55,7 +67,7 @@ public class SinglePlayerParameters : MonoBehaviour
                 pumpkins_number = 4;
         }
         catch { }
-
-        return new Vector3(AI_number, obstacles_number, pumpkins_number);
+        finally { PlayerPrefs.SetInt("PumpkinsNumber", pumpkins_number); }
     }
+
 }

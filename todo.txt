@@ -1,3 +1,1 @@
-unity : properly validate the commands
 unity,client,server: game end logic
-server token function

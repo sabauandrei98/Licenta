@@ -108,13 +108,29 @@ public class GameManager : MonoBehaviour
             int x = int.Parse(cmd.Split(' ')[1]);
             int y = int.Parse(cmd.Split(' ')[2]);
 
-            if (game_map[x][y] == 'p')
-                players_list[player_index].GetComponent<Player>().IncreasePoints();
+            Vector3 current_player_pos = players_list[player_index].transform.position;
 
-            if (game_map[x][y] != 'o')
-            {
-                players_list[player_index].GetComponent<Player>().MovePlayerToPosition(x, y);
-            }    
+            int curr_x = (int)current_player_pos.x;
+            int curr_y = (int)current_player_pos.z;
+
+            int dist_x = curr_x - x;
+            int dist_y = curr_y - y;
+
+            //check if new X and Y pos are not too far
+            if (-1 <= dist_x && dist_x <= 1)
+                if (-1 <= dist_y && dist_y <= 1)
+                    //check if movement is only on one dirrection (can't move on diagonals)
+                    if (dist_x == 0 || dist_y == 0)
+                    {
+
+                        if (game_map[x][y] == 'p')
+                            players_list[player_index].GetComponent<Player>().IncreasePoints();
+
+                        if (game_map[x][y] != 'o')
+                        {
+                            players_list[player_index].GetComponent<Player>().MovePlayerToPosition(x, y);
+                        }
+                    } 
         }
 
         if (cmd.Split(' ')[0] == "BOMB")
