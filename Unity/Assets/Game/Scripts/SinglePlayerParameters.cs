@@ -21,6 +21,13 @@ public class SinglePlayerParameters : MonoBehaviour
         pumpkins_input_field.onValueChanged.AddListener(delegate { Pumpkins_InputField_ValueChanged(); });
     }
 
+    void Start()
+    {
+        PlayerPrefs.SetInt("BotsNumber", 1);
+        PlayerPrefs.SetInt("ObstaclesNumber", 40);
+        PlayerPrefs.SetInt("PumpkinsNumber", 40);
+    }
+
     private void Bots_InputField_ValueChanged()
     {
         int AI_number = 1;
