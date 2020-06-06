@@ -29,9 +29,12 @@ public class AIPlayer : Player
         {
             int xx = dx[i] + x;
             int yy = dy[i] + y;
-            if (IsOnMap(xx, yy, map_size) && (map[xx][yy] == '_' || map[xx][yy] == 'p'))
+            if (IsOnMap(xx, yy, map_size) && map[xx][yy] != 'o')
                 allowed_moves.Add("MOVE" + " " + xx.ToString() + " " + yy.ToString());
         }
+        Debug.Log(this.GetName());
+        for (int i = 0; i < allowed_moves.Count; i++)
+            Debug.Log(allowed_moves[i]);
         string move = allowed_moves[Random.Range(0, allowed_moves.Count)];
         Debug.Log(move);
         return move;

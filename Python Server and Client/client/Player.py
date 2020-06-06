@@ -2,15 +2,19 @@ from modules.ClientSocket import ClientSocket
 
 """
 Player Class:
-	- Clients are only allowed to modify what's inside the "solve" function!
+	- Clients are only allowed to modify what's inside the class Player
 	- You may add helper functions, as shown below 
-	- Make sure all the Player methods are static
 
 """
 
+
+
 class Player:
 
-	@staticmethod
+	def __init__(self):
+		pass
+
+
 	def helper_function():
 		pass
 
@@ -26,8 +30,8 @@ class Player:
 
 		WARNING: make sure your output is valid, otherwise it won't be processed by the game
 	"""
-	@staticmethod
-	def solve(players_position, game_map, bombs_position):
+
+	def solve(self, players_position, game_map, bombs_position):
 
 		#Insert your code here 
 
@@ -47,11 +51,12 @@ class Player:
 
 
 
-
 #Connection info
 SERVER_ADDRESS  = "localhost"
 SERVER_PORT     = 50000
-CLIENT_TOKEN    = "token0"
+CLIENT_TOKEN    = "singleplayer"
+
+p = Player()
 
 #Connect to the server
-c = ClientSocket(SERVER_ADDRESS, SERVER_PORT, CLIENT_TOKEN, Player.solve)
+c = ClientSocket(SERVER_ADDRESS, SERVER_PORT, CLIENT_TOKEN, p.solve)
