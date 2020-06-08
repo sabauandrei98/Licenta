@@ -45,8 +45,8 @@ class Client:
 								 - responsible for knowing on which variable to store the info + console logging
 	"""
 	def start_new_socket_handler(self, client_socket, client_type):
-		new_reader = threading.Thread(target = self.socket_reader, args = (client_socket, client_type))
-		new_writer = threading.Thread(target = self.socket_writer, args = (client_socket, client_type))
+		new_reader = threading.Thread(target = self.__socket_reader, args = (client_socket, client_type))
+		new_writer = threading.Thread(target = self.__socket_writer, args = (client_socket, client_type))
 		new_reader.start()
 		new_writer.start()
 		
@@ -61,7 +61,7 @@ class Client:
 
 			- in case of any error, the connection to the server is closed
 	"""
-	def socket_reader(self, client_socket, socket_type):
+	def __socket_reader(self, client_socket, socket_type):
 
 		#string, representing the function name, used for console logging
 		function_name = sys._getframe().f_code.co_name
@@ -69,7 +69,7 @@ class Client:
 		try:
 			while True:
 				if socket_type == "unity":
-					self.console_log(function_name + ": Waiting to read from unity...")
+					self.__console_log(function_name + ": Waiting to read from unity...")
 
 					#string, store data received from the server
 					self.unity_read = client_socket.recv(self.recv_size_bytes)
@@ -78,10 +78,10 @@ class Client:
 					if (self.unity_read == ""):
 						raise Exception(": Connection with the unity client dropped !")
 
-					self.console_log(function_name + ": Message read from unity ! " + self.unity_read)
+					self.__console_log(function_name + ": Message read from unity ! " + self.unity_read)
 
 				if socket_type == "ide":
-					self.console_log(function_name + ": Waiting to read from ide...")
+					self.__console_log(function_name + ": Waiting to read from ide...")
 
 					#string, store data received from the server
 					self.ide_read = client_socket.recv(self.recv_size_bytes)
@@ -90,19 +90,19 @@ class Client:
 					if (self.ide_read == ""):
 						raise Exception(": Connection with the ide client dropped !")
 
-					self.console_log(function_name + ": Message read from ide! " + self.ide_read)
+					self.__console_log(function_name + ": Message read from ide! " + self.ide_read)
 				
 		#handle possible exceptions	and close the connection
 		except socket.timeout:
-			self.console_log(function_name + ": This client has been disconnected due to timeout !")
+			self.__console_log(function_name + ": This client has been disconnected due to timeout !")
 			self.is_connected = False
 			
 		except socket.error:
-			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
+			self.__console_log(function_name + ": Oops there was an socket error and connection was closed !")
 			self.is_connected = False
 
 		except Exception as e:
-			self.console_log(function_name + str(e))
+			self.__console_log(function_name + str(e))
 			self.is_connected = False
 
 
@@ -119,7 +119,7 @@ class Client:
 
 			- in case of any error, the connection to the server is closed
 	"""
-	def socket_writer(self, client_socket, socket_type):
+	def __socket_writer(self, client_socket, socket_type):
 
 		#string, representing the function name, used for console logging
 		function_name = sys._getframe().f_code.co_name
@@ -127,7 +127,7 @@ class Client:
 		try:
 			while True:
 				if socket_type == "unity":
-					self.console_log(function_name + ": Waiting for server to write to unity ...")
+					self.__console_log(function_name + ": Waiting for server to write to unity ...")
 
 					#string, if the var is empty, sleep and check later
 					while self.unity_write == "":
@@ -136,13 +136,13 @@ class Client:
 					#if the var has data, send it to the server
 					client_socket.send(self.unity_write)
 
-					self.console_log(function_name + ": Message sent to unity ! " + self.unity_write)
+					self.__console_log(function_name + ": Message sent to unity ! " + self.unity_write)
 
 					#reset the variable to avoid further sendings
 					self.unity_write = ""
 
 				if socket_type == "ide":
-					self.console_log(function_name + ": Waiting for server to write to ide ...")
+					self.__console_log(function_name + ": Waiting for server to write to ide ...")
 
 					#string, if the var is empty, sleep and check later
 					while self.ide_write == "":
@@ -150,22 +150,22 @@ class Client:
 
 					#if the var has data, send it to the server
 					client_socket.send(self.ide_write)
-					self.console_log(function_name + ": Message sent to ide ! " + self.ide_write)
+					self.__console_log(function_name + ": Message sent to ide ! " + self.ide_write)
 
 					#reset the variable to avoid further sendings
 					self.ide_write = ""
 			
 		#handle possible exceptions	and close the connection		
 		except socket.timeout:
-			self.console_log(function_name + ": This client has been disconnected due to timeout !")
+			self.__console_log(function_name + ": This client has been disconnected due to timeout !")
 			self.is_connected = False
 
 		except socket.error:
-			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
+			self.__console_log(function_name + ": Oops there was an socket error and connection was closed !")
 			self.is_connected = False
 
 		except Exception as e:
-			self.console_log(function_name + str(e))
+			self.__console_log(function_name + str(e))
 			self.is_connected = False
 
 
@@ -175,7 +175,7 @@ class Client:
 		return: string, representing the socket details (ip, port)
 				""    , if no socket data available
 	"""
-	def get_unity_address(self):
+	def __get_unity_address(self):
 		try:
 			if (self.unity_socket != None):
 				return str(self.unity_socket.getpeername())
@@ -190,7 +190,7 @@ class Client:
 		return: string, representing the socket details (ip, port)
 				""    , if no socket data available
 	"""
-	def get_ide_address(self):
+	def __get_ide_address(self):
 		try:
 			if(self.ide_socket != None):
 				return str(self.ide_socket.getpeername())
@@ -203,5 +203,5 @@ class Client:
 		This function logs data, printing the socket details, in case of a connected one
 			@message: string, message to be printed
 	"""
-	def console_log(self, message):
-		print ("Unity:<" + self.get_unity_address() + "> Ide: <" + self.get_ide_address() + "> " + message)
+	def __console_log(self, message):
+		print ("Unity:<" + self.__get_unity_address() + "> Ide: <" + self.__get_ide_address() + "> " + message)

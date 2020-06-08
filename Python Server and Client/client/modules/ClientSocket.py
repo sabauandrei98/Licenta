@@ -23,26 +23,26 @@ class ClientSocket:
 	"""
 	def __init__(self, server_address, port, token, solve_function):
 		#params
-		self.server_address = server_address
-		self.port			= port
-		self.token 			= token
-		self.solve_function = solve_function
+		self.__server_address = server_address
+		self.__port			= port
+		self.__token 			= token
+		self.__solve_function = solve_function
 
 		#receive from server buffer size
-		self.RECV_SIZE_BYTES = Game.get_buffer_size()
+		self.__recv_size_bytes = Game.get_buffer_size()
 
 		#socket which will be used to send and receive data
-		self.client_socket = None
+		self.__client_socket = None
 
 		#string, the data that needs to be sent to the server
 			# a thread checks if this var has data and if so, it starts sending it
-		self.ide_write = ""
+		self.__ide_write = ""
 
 		#string, the data that is received from the server
 			# a thread checks if socket contains any data and if so, it stores it in this var 
-		self.ide_read = ""
+		self.__ide_read = ""
 
-		self.connect_to_server()
+		self.__connect_to_server()
 
 
 
@@ -57,38 +57,37 @@ class ClientSocket:
 			- if any of above fails, the socket is closed
 
 	"""
-	def connect_to_server(self):
+	def __connect_to_server(self):
 
 		#string, function name, for console log purposes
 		function_name = sys._getframe().f_code.co_name
 
 		try:
 			#setting up the socket
-			self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			self.__client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.__client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 	
-			self.console_log(function_name + ": Connecting to: " + str(self.server_address) + ":" + str(self.port) + " tkn: " +  self.token)
+			self.__console_log(function_name + ": Connecting to: " + str(self.__server_address) + ":" + str(self.__port) + " tkn: " +  self.__token)
 			
 			#connecting to the server
-			self.client_socket.connect((self.server_address, self.port))
+			self.__client_socket.connect((self.__server_address, self.__port))
 
 			#sending the token to be validated
-			self.client_socket.send(self.token)
+			self.__client_socket.send(self.__token)
 
 			#string, server respose
-			message = self.client_socket.recv(self.RECV_SIZE_BYTES)
-			self.console_log(function_name + ": Server response: " + message)
+			message = self.__client_socket.recv(self.__recv_size_bytes)
 
 			#if token not verified, raise exception
 			if (message != "TOKEN OK"):
 				raise Exception("Your token is wrong OR already used in a connection !")
 
 			#at this point, the client successfully connected to the server
-			self.console_log(function_name + ": You were successfully verified by the server !")
+			self.__console_log(function_name + ": You were successfully verified by the server !")
 			
 			#start some threads to handle sending/receiving data
-			new_reader = threading.Thread(target = self.socket_reader, args = ())
-			new_writer = threading.Thread(target = self.socket_writer, args = ())
+			new_reader = threading.Thread(target = self.__socket_reader, args = ())
+			new_writer = threading.Thread(target = self.__socket_writer, args = ())
 			new_reader.start()
 			new_writer.start()
 
@@ -97,21 +96,21 @@ class ClientSocket:
 			#exception happening when the user was succesfully connected to the server
 			#but the server is not reacheable for sending the token
 			try:
-				self.client_socket.close()
+				self.__client_socket.close()
 			except:
 				pass
 
-			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
+			self.__console_log(function_name + ": Oops there was an socket error and connection was closed !")
 
 		except Exception as error:
 			#exception happening when the token is wrong or
 			#the socket tries to connect while the game is running
 			try:
-				self.client_socket.close()
+				self.__client_socket.close()
 			except:
 				pass
 
-			self.console_log(function_name + ": " + str(error))
+			self.__console_log(function_name + ": " + str(error))
 
 
 
@@ -123,39 +122,39 @@ class ClientSocket:
 
 			- in case of any error, the connection to the server is closed
 	"""
-	def socket_reader(self):
+	def __socket_reader(self):
 
 		#string, function name, for console log purposes
 		function_name = sys._getframe().f_code.co_name
 
 		try:
 			while True:
-				self.console_log(function_name + ": Waiting to read from server...")
+				self.__console_log(function_name + ": Waiting to read from server...")
 
 				#string, store data received from the server
-				self.ide_read = self.client_socket.recv(self.RECV_SIZE_BYTES)
+				self.__ide_read = self.__client_socket.recv(self.__recv_size_bytes)
 
 				#if empty data, close the connection
-				if (self.ide_read == ""):
+				if (self.__ide_read == ""):
 					raise Exception(": Connection with the server dropped !")
 
-				self.console_log(function_name + ": Message read from server ! Msg:\n" + self.ide_read + "<END>")
+				self.__console_log(function_name + ": Message read from server ! Msg:\n" + self.__ide_read + "<END>")
 
 				#send data to the Player class to be processed
-				self.get_player_response(self.ide_read)
+				self.__get_player_response(self.__ide_read)
 		
 		#handle the possible exceptions and close the connection	
 		except socket.timeout:
-			self.console_log(function_name + ": This client has been disconnected due to timeout !")
+			self.__console_log(function_name + ": This client has been disconnected due to timeout !")
 		except socket.error:
-			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
+			self.__console_log(function_name + ": Oops there was an socket error and connection was closed !")
 		except Exception as e:
-			self.console_log(function_name + str(e))
+			self.__console_log(function_name + str(e))
 
 		#finally, close the connection
 		finally:
-			self.client_socket.shutdown(socket.SHUT_RDWR)
-			self.client_socket.close()
+			self.__client_socket.shutdown(socket.SHUT_RDWR)
+			self.__client_socket.close()
 
 
 	"""
@@ -165,39 +164,39 @@ class ClientSocket:
 
 			- in case of any error, the connection to the server is closed
 	"""
-	def socket_writer(self):
+	def __socket_writer(self):
 
 		#string, function name, for console log purposes
 		function_name = sys._getframe().f_code.co_name
 
 		try:
 			while True:
-				self.console_log(function_name + ": Waiting for client to write to server ...")
+				self.__console_log(function_name + ": Waiting for client to write to server ...")
 
 				#string, if the var is empty, sleep and check later
-				while self.ide_write == "":
+				while self.__ide_write == "":
 					time.sleep(0.1)
 
 				#if the var has data, send it to the server
-				self.client_socket.send(self.ide_write)
+				self.__client_socket.send(self.__ide_write)
 
-				self.console_log(function_name + ": Message sent to server ! Msg:\n" + self.ide_write + "<END>")
+				self.__console_log(function_name + ": Message sent to server ! Msg:\n" + self.__ide_write + "<END>")
 
 				#reset the variable to avoid further sendings
-				self.ide_write = ""
+				self.__ide_write = ""
 		
 		#handle the possible exceptions		
 		except socket.timeout:
-			self.console_log(function_name + ": This client has been disconnected due to timeout !")
+			self.__console_log(function_name + ": This client has been disconnected due to timeout !")
 		except socket.error:
-			self.console_log(function_name + ": Oops there was an socket error and connection was closed !")
+			self.__console_log(function_name + ": Oops there was an socket error and connection was closed !")
 		except Exception as e:
-			self.console_log(function_name + str(e))
+			self.__console_log(function_name + str(e))
 
 		#finally, close the connection
 		finally:
-			self.client_socket.shutdown(socket.SHUT_RDWR)
-			self.client_socket.close()
+			self.__client_socket.shutdown(socket.SHUT_RDWR)
+			self.__client_socket.close()
 
 
 	"""
@@ -206,10 +205,10 @@ class ClientSocket:
 		return: string, representing the socket details (ip, port)
 				""    , if no socket data available
 	"""
-	def get_ide_address(self):
+	def __get_ide_address(self):
 			try:
-				if(self.client_socket != None):
-					return str(self.client_socket.getpeername())
+				if(self.__client_socket != None):
+					return str(self.__client_socket.getpeername())
 			except:
 				pass
 			return ""
@@ -219,8 +218,8 @@ class ClientSocket:
 		This function logs data, printing the socket details, in case of a connected one
 			@message: string, message to be printed
 	"""
-	def console_log(self, message):
-		print ("Connection: <" + self.get_ide_address() + "> " + message)
+	def __console_log(self, message):
+		print ("Connection: <" + self.__get_ide_address() + "> " + message)
 
 
 
@@ -229,7 +228,7 @@ class ClientSocket:
 		and will return a value, filling the "ide_write" var which represents the write buffer
 			@server_data: string, rows of data from the server separated by 
 	"""
-	def get_player_response(self, server_data):
+	def __get_player_response(self, server_data):
 
 		#string, function name, for console log purposes
 		function_name = sys._getframe().f_code.co_name
@@ -241,9 +240,9 @@ class ClientSocket:
 			players_position, game_map, bombs_position = Game.format_data(server_data)
 
 			#send data to the Player class and receive an action
-			self.ide_write = self.solve_function(players_position, game_map, bombs_position)
+			self.__ide_write = self.__solve_function(players_position, game_map, bombs_position)
 		else:
 			#if the player is not able to play anymore
-			self.console_log(function_name + ": You are spectating !")
+			self.__console_log(function_name + ": You are spectating !")
 
 

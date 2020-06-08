@@ -15,7 +15,7 @@ class Player:
 		pass
 
 
-	def helper_function():
+	def __helper_function():
 		pass
 
 	"""
@@ -45,7 +45,7 @@ class Player:
 			for x, y in bombs_position:
 				pass
 
-
+		#return an action, eg: "MOVE X Y", "BOMB"
 		return "MOVE 0 1"
 
 
@@ -56,6 +56,7 @@ SERVER_ADDRESS  = "localhost"
 SERVER_PORT     = 50000
 CLIENT_TOKEN    = "singleplayer"
 
+#create a player class instance
 p = Player()
 
 #Connect to the server
