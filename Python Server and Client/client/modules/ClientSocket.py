@@ -148,8 +148,6 @@ class ClientSocket:
 			self.__console_log(function_name + ": This client has been disconnected due to timeout !")
 		except socket.error:
 			self.__console_log(function_name + ": Oops there was an socket error and connection was closed !")
-		except Exception as e:
-			self.__console_log(function_name + str(e))
 
 		#finally, close the connection
 		finally:

@@ -64,6 +64,7 @@
      <Compile Include="Assets\Game\Scripts\Player\AIPlayer.cs" />
      <Compile Include="Assets\Game\Scripts\Player\Player.cs" />
      <Compile Include="Assets\Game\Scripts\SinglePlayerParameters.cs" />
+     <Compile Include="Assets\Scripts\Helpers\CombineMeshes.cs" />
      <Compile Include="Assets\Scripts\Networking\NetworkManager.cs" />
      <Compile Include="Assets\Scripts\Scenes\SceneLoader.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">

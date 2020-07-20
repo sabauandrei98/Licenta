@@ -69,7 +69,7 @@ public class Player : MonoBehaviour
     public void MovePlayerToPosition(int x, int y)
     {
         gameObject.transform.LookAt(new Vector3(x, 0, y));
-        target_position = new Vector3(x, 0.1f, y);
+        transform.position = new Vector3(x, 0.1f, y);
     }
 
     public bool IsDead()

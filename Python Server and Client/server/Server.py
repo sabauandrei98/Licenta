@@ -203,7 +203,7 @@ class Server:
 						self.__handle_unity_client(client_socket)
 					
 					#ide linking phase
-					if self.all_unity_clients_ready and not self.__all_ide_clients_ready:
+					if self.__all_unity_clients_ready and not self.__all_ide_clients_ready:
 						#handle ide player to see if it is eligible
 						self.__handle_ide_client(client_socket)
 
@@ -283,7 +283,7 @@ class Server:
 
 			#if all the unity clients are ready and there is at least one client
 			#the game can start
-			if ready_clients == len(self.__clients) and ready_clients > 0:
+			if ready_clients == len(self.__clients) and ready_clients > 1:
 				self.__all_unity_clients_ready = True
 				print("##### All unity clients ready ! ####\n")
 
@@ -342,10 +342,11 @@ class Server:
 				with lock:
 
 					print("Generating and sending initial data..")
+					initial_game_data = Game.initial_data(self.__tokens)
 					for client in self.__clients:
 						try:
 							#generate initial data and put in in the buffer to be sent to unity
-							client.unity_write = Game.initial_data(self.__tokens)
+							client.unity_write = initial_game_data
 						except:
 							#disconnect if client not reachable
 							self.__disconnect_one(client)
@@ -354,6 +355,9 @@ class Server:
 				print("Initial data sent !")
 
 				while True:
+
+					if (len(self.__clients) == 1):
+						self.__disconnect_all()
 
 					#initial data has been sent
 					#now unity will create a data packet which will be sent to ide

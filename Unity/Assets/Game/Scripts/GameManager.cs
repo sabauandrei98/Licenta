@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System;
 
 public class GameManager : MonoBehaviour
@@ -25,6 +26,11 @@ public class GameManager : MonoBehaviour
     //can be modified
     private int bomb_range = 2;
     private int bomb_detonate_time = 5;
+
+    void Start()
+    {
+        GameObject.FindGameObjectWithTag("MainMenu_Button").GetComponent<Button>().onClick.AddListener(delegate { SceneManager.LoadScene("MainMenu"); });
+    }
 
 
     public void PrepareGame(string server_data, bool single_player)
@@ -78,6 +84,7 @@ public class GameManager : MonoBehaviour
             {
                 if (players_list[player_ind].GetComponent<Player>().GetName() == cmds[cmd_ind].token)
                 {
+                    Debug.Log("handle client: " + cmds[cmd_ind].command + "|" + players_list[player_ind].GetComponent<Player>().transform.position.ToString());
                     HandleCommand(cmds[cmd_ind].command, player_ind);
                 }
             }
@@ -88,6 +95,7 @@ public class GameManager : MonoBehaviour
             if (players_list[AI_ind].GetComponent<Player>().GetName() == "AI")
             {
                 string ai_cmd = players_list[AI_ind].GetComponent<AIPlayer>().MoveAI(players_list[AI_ind].transform.position, ref game_map, bombs_details);
+                Debug.Log("handle ai: " + ai_cmd + "|" + players_list[AI_ind].GetComponent<Player>().transform.position.ToString());
                 HandleCommand(ai_cmd, AI_ind);
             }
         }
@@ -128,6 +136,7 @@ public class GameManager : MonoBehaviour
 
                         if (game_map[x][y] != 'o')
                         {
+                            Debug.Log("player moved:" + cmd);
                             players_list[player_index].GetComponent<Player>().MovePlayerToPosition(x, y);
                         }
                     } 
@@ -273,6 +282,8 @@ public class GameManager : MonoBehaviour
             Vector3 bomb_pos = bombs_details[i];
             result += bomb_pos.x.ToString() + " " + bomb_pos.z.ToString() + '\n';
         }
+
+        Debug.Log("Session data:" + result);
 
         return result;
     }

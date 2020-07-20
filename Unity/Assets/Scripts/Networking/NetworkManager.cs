@@ -155,6 +155,7 @@ public class NetworkManager : MonoBehaviour
             if (cmd == single_player_token)
             {
                 single_player_token_validated = true;
+                ide_token = single_player_token;
                 SetConnectionStatus(Color.green, "Connected to the server ! The game will start soon ..");
                 SendData(System.Text.Encoding.Default.GetBytes("TOKEN OK"));
                 StartCoroutine(HandleInitialDataSinglePlayer());
@@ -176,9 +177,9 @@ public class NetworkManager : MonoBehaviour
         SceneManager.LoadScene("Game");
 
         yield return new WaitForSeconds(1.5f);
-
         GameManager game_manager = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
         game_manager.PrepareGame("", true);
+        game_manager.instance_token = ide_token;
         SendData(System.Text.Encoding.Default.GetBytes(game_manager.GetSessionData()));
     }
 

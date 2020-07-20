@@ -23,6 +23,7 @@ TagManager:
   - Port_Text
   - Debug_Panel
   - Debug_Button
+  - MainMenu_Button
   layers:
   - Default
   - TransparentFX
